@@ -36,8 +36,8 @@ class MMBaseClassifier(baseLLPClassifier, ABC):
         return self.__dict__
     
 class MM(MMBaseClassifier):
-    def __init__(self, lmd, random_state=None):
-        super().__init__(lmd, random_state)
+    def __init__(self, lmd):
+        super().__init__(lmd)
 
     def fit(self, X, bags, proportions):
         """
@@ -108,8 +108,8 @@ class LMM(MMBaseClassifier):
         self.w = self.laplacian_mean_map(trainset, laplacian, self.lmd, self.gamma)
 
 class AMM(MMBaseClassifier):
-    def __init__(self, lmd, gamma, sigma, similarity="G,s", init="LMM", minmax=True, random_state=None):
-        super().__init__(lmd, random_state)
+    def __init__(self, lmd, gamma, sigma, similarity="G,s", init="LMM", minmax=True):
+        super().__init__(lmd)
         self.gamma = gamma
         self.sigma = sigma
         if similarity not in ["G,s", "NC,s"]:

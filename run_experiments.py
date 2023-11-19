@@ -1,7 +1,9 @@
 import argparse
 import os
+import sys
 import pandas as pd
 import time
+import warnings
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score
@@ -10,9 +12,9 @@ from sklearn.preprocessing import MinMaxScaler
 
 from llp_learn.em import EM
 from llp_learn.dllp import DLLP
-from llp_learn.model_selection import gridSearchCV
 from llp_learn.util import compute_proportions
 
+from grid_search_experiments import gridSearchCVExperiments
 from almostnolabel import MM, LMM, AMM
 
 VARIANTS = ["naive", "simple", "intermediate", "hard"]
@@ -45,7 +47,7 @@ def load_dataset(args, execution):
     return X, bags, y, train_index, test_index
 
 # Constants
-n_executions = 30
+n_executions = 5 # Number of executions (it was 30 before, maybe will increase in the future)
 try:
     N_JOBS = eval(os.getenv('NSLOTS'))
 except:
@@ -59,10 +61,10 @@ seed = [189395, 962432364, 832061813, 316313123, 1090792484,
         641017724,  626917272, 1164021890, 3439309091, 1066061666,
         411932339, 1446558659, 1448895932,  952198910, 3882231031]
 
-directory = "datasets-experiments-results/"
+directory = "llp-benchmark-results/"
 
 # Parsing arguments
-parser = argparse.ArgumentParser(description="LLP loss experiments")
+parser = argparse.ArgumentParser(description="LLP benchmark experiments")
 parser.add_argument("--dataset", "-d", required=True, help="the dataset that will be used in the experiments")
 parser.add_argument("--model", "-m", choices=["kdd-lr", "lmm", "amm", "mm", "dllp"], required=True,
                     help="the model that will be used in the experiments")
@@ -124,14 +126,15 @@ for execution in executions:
 
     X, bags, y, train_index, test_index = load_dataset(args, execution)
 
-    scaler = MinMaxScaler((-1, 1))
-    X = scaler.fit_transform(X)
-
     X_train, y_train, bags_train = X[train_index], y[train_index], bags[train_index]
     X_test, y_test, bags_test = X[test_index], y[test_index], bags[test_index]
     proportions = compute_proportions(bags_train, y_train)
 
-    df_results = pd.DataFrame(columns=["accuracy_test", "f1_test", "best_hyperparams"])
+    scaler = MinMaxScaler((-1, 1))
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+
+    df_results = pd.DataFrame(columns=["metric", "accuracy_train", "accuracy_test", "f1_train", "f1_test", "best_hyperparams"])
 
     print("Execution started!!!")
 
@@ -147,16 +150,36 @@ for execution in executions:
         model = DLLP(lr=0.01, n_epochs=100, in_features=X_train.shape[1],
                      out_features=2, hidden_layer_sizes=(100,100))
 
-    gs = gridSearchCV(model, params, refit=True, cv=args.n_splits, splitter=args.splitter, loss_type=args.loss, 
+    gs = gridSearchCVExperiments(model, params, refit=True, cv=args.n_splits, splitter=args.splitter, loss_type=args.loss, 
                         validation_size=args.validation_size, central_tendency_metric="mean", 
                         n_jobs=N_JOBS, random_state=seed[execution])
 
-    gs.fit(X_train, bags_train, proportions, y_train)
-    y_pred_test = gs.predict(X_test)
-    accuracy_test = accuracy_score(y_test, y_pred_test)
-    f1_test = f1_score(y_test, y_pred_test)
-    best_hyperparams = gs.best_params_
+    metrics = ["abs", "oracle", "hypergeo"]
 
-    df_results = pd.concat([df_results, pd.DataFrame([[accuracy_test, f1_test, best_hyperparams]], columns=["accuracy_test", "f1_test", "best_hyperparams"])], ignore_index=True)
+    if not sys.warnoptions:
+        warnings.simplefilter("ignore")
+        os.environ["PYTHONWARNINGS"] = "ignore"
+        gs.fit(X_train, bags_train, proportions, y_train)
+        for metric in metrics:
+            print("Metric: %s" % metric)
+            y_pred_train = gs.predict(X_train, metric)
+            y_pred_test = gs.predict(X_test, metric)
+            accuracy_train = accuracy_score(y_train, y_pred_train)
+            accuracy_test = accuracy_score(y_test, y_pred_test)
+            f1_train = f1_score(y_train, y_pred_train)
+            f1_test = f1_score(y_test, y_pred_test)
+            if metric == "abs":
+                best_hyperparams = gs.best_params_abs_
+            elif metric == "oracle":
+                best_hyperparams = gs.best_params_oracle_
+            elif metric == "hypergeo":
+                best_hyperparams = gs.best_params_hypergeo_
+
+            df_results = df_results.append({"metric": metric, "accuracy_train": accuracy_train, "accuracy_test": accuracy_test,
+                                            "f1_train": f1_train, "f1_test": f1_test, "best_hyperparams": best_hyperparams}, ignore_index=True)
+    else:
+        print("Warning failed!!!")
+
     df_results.to_parquet(filename)
     print("Execution finished!!!")
+    print("Time: %s\n\n" % (time.time() - start))
