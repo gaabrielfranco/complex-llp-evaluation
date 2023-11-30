@@ -60,8 +60,6 @@ class gridSearchCVExperiments(gridSearchCV):
             err_hypergeo = -binom.logpmf(k, n, proportions)
             err_hypergeo[np.isinf(err_hypergeo)] = 10e5
             err_hypergeo = np.sum(err_hypergeo)
-        elif self.splitter == "split-bag-k-fold":
-            err_hypergeo = 0.0 # TODO: Implement this
         else:
             err_hypergeo = 0.0 # Not implemented
 
@@ -144,7 +142,7 @@ class gridSearchCVExperiments(gridSearchCV):
             self.best_estimator_hypergeo_ = df_best_estimator[df_best_estimator.error_hypergeo == df_best_estimator.error_hypergeo.min(
                 )].iat[0, 0]
     
-    def predict(self, X, metric, bags=None):
+    def predict(self, X, metric):
         if metric == "abs":
             return self.best_estimator_abs_.predict(X)
         elif metric == "oracle":

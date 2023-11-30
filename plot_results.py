@@ -49,7 +49,10 @@ error_metric_map = {
     "error_bag_abs": "Abs loss",
 }
 
-final_results = pd.read_parquet("datasets-benchmark-experiment-results.parquet")
+final_results = pd.read_parquet("llp-benchmark-experiment-results.parquet")
+# Getting only abs metric
+final_results = final_results[final_results.metric == "abs"]
+
 final_results.rename(columns={"metric": "error_metric"}, inplace=True)
 
 final_results["error_metric"].replace(error_legend_map, inplace=True)

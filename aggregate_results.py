@@ -1,7 +1,7 @@
 import pandas as pd
 import glob
 
-base_folder = "datasets-experiments-results/"
+base_folder = "llp-benchmark-results/"
 files = glob.glob(base_folder + "*")
 
 files.sort()
@@ -21,4 +21,4 @@ for file in files:
     data = pd.concat([data, df])
 
 data.reset_index(inplace=True, drop=True)
-data.to_parquet("datasets-benchmark-experiment-results.parquet", index=False)
+data.to_parquet("llp-benchmark-experiment-results.parquet", index=False)
