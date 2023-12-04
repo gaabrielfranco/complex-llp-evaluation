@@ -68,12 +68,15 @@ class gridSearchCVExperiments(gridSearchCV):
 
         err_oracle = 1 - \
             accuracy_score(self.y[validation_index], y_pred_validation)
+        
+        # Cleaning the GPU memory
+        del estimator
 
-        return (estimator, param_id, param, train_index, validation_index, err_abs, err_oracle, err_hypergeo)
+        return (param_id, param, train_index, validation_index, err_abs, err_oracle, err_hypergeo)
     
     def _aggregate_results(self, r):
         df = pd.DataFrame(
-            r, columns="model id params train_index validation_index error_abs error_oracle error_hypergeo".split())
+            r, columns="id params train_index validation_index error_abs error_oracle error_hypergeo".split())
 
         # Removing hyperparameters that do not converged in all folds
         df = df.groupby("id").filter(lambda x: len(x) == self.cv)
@@ -85,7 +88,7 @@ class gridSearchCVExperiments(gridSearchCV):
         else:
             raise Exception(
                 "There was not possible to computate the error. Verify the central_tendency_metric parameter.")
-
+        
         return df, df_results
     
     def _fit_best_estimator(self, X, bags, proportions, df, df_results):
@@ -96,6 +99,8 @@ class gridSearchCVExperiments(gridSearchCV):
 
         if self.refit:
             self.best_estimator_abs_ = deepcopy(self.estimator)
+            # Release GPU memory
+            torch.cuda.empty_cache()
             self.best_estimator_abs_.set_params(**self.best_params_abs_)
             try:
                 self.best_estimator_abs_.fit(X, bags, proportions)
@@ -104,11 +109,15 @@ class gridSearchCVExperiments(gridSearchCV):
                 warnings.warn("Error abs case: The best hyperparameters found by the CV process did not converge in the refit process. \
                     The best hyperparameters are " + str(self.best_params_abs_))
         else:
-            self.best_estimator_abs_ = df_best_estimator[df_best_estimator.error_abs == df_best_estimator.error_abs.min(
-                )].iat[0, 0]
-            
-        # Due to GPU memory issues, we will not refit the best estimator for the oracle and hypergeo metrics
-
+            df_best_estimator_abs = df_best_estimator[df_best_estimator.error_abs == df_best_estimator.error_abs.min()]
+            train_index = df_best_estimator_abs["train_index"].iloc[0]
+            # Fit the best_estimator_abs_
+            self.best_estimator_abs_ = deepcopy(self.estimator)
+            # Release GPU memory
+            torch.cuda.empty_cache()
+            self.best_estimator_abs_.set_params(**self.best_params_abs_)
+            self.best_estimator_abs_.fit(X[train_index], bags[train_index], proportions)
+        
         # Saving the variables used to refit later
         self.X_ = X
         self.bags_ = bags
@@ -119,94 +128,55 @@ class gridSearchCVExperiments(gridSearchCV):
         df_best_estimator = df[df.id == best_estimator_id]
         self.best_params_oracle_ = df_best_estimator["params"].iloc[0]
 
-        # if self.refit:
-        #     self.best_estimator_oracle_ = deepcopy(self.estimator)
-        #     self.best_estimator_oracle_.set_params(**self.best_params_oracle_)
-        #     try:
-        #         self.best_estimator_oracle_.fit(X, bags, proportions)
-        #     except ValueError:
-        #         self.best_estimator_oracle_ = None
-        #         warnings.warn("Error abs case: The best hyperparameters found by the CV process did not converge in the refit process. \
-        #             The best hyperparameters are " + str(self.best_params_oracle_))
-        # else:
-        #     self.best_estimator_oracle_ = df_best_estimator[df_best_estimator.error_oracle == df_best_estimator.error_oracle.min(
-        #         )].iat[0, 0]
+        if self.refit:
+            self.best_estimator_oracle_ = deepcopy(self.estimator)
+            self.best_estimator_oracle_.set_params(**self.best_params_oracle_)
+            try:
+                self.best_estimator_oracle_.fit(X, bags, proportions)
+            except ValueError:
+                self.best_estimator_oracle_ = None
+                warnings.warn("Error abs case: The best hyperparameters found by the CV process did not converge in the refit process. \
+                    The best hyperparameters are " + str(self.best_params_oracle_))
+        else:
+            df_best_estimator_oracle = df_best_estimator[df_best_estimator.error_oracle == df_best_estimator.error_oracle.min()]
+            train_index = df_best_estimator_oracle["train_index"].iloc[0]
+            # Fit the best_estimator_oracle_
+            self.best_estimator_oracle_ = deepcopy(self.estimator)
+            # Release GPU memory
+            torch.cuda.empty_cache()
+            self.best_estimator_oracle_.set_params(**self.best_params_oracle_)
+            self.best_estimator_oracle_.fit(X[train_index], bags[train_index], proportions)
 
-        # # # Metric 3) hypergeo
+        # # Metric 3) hypergeo
         best_estimator_id = int(df_results["error_hypergeo"].idxmin())
         df_best_estimator = df[df.id == best_estimator_id]
         self.best_params_hypergeo_ = df_best_estimator["params"].iloc[0]
 
-        # if self.refit:
-        #     self.best_estimator_hypergeo_ = deepcopy(self.estimator)
-        #     self.best_estimator_hypergeo_.set_params(**self.best_params_hypergeo_)
-        #     try:
-        #         self.best_estimator_hypergeo_.fit(X, bags, proportions)
-        #     except ValueError:
-        #         self.best_estimator_hypergeo_ = None
-        #         warnings.warn("Error abs case: The best hyperparameters found by the CV process did not converge in the refit process. \
-        #             The best hyperparameters are " + str(self.best_params_hypergeo_))
-        # else:
-        #     self.best_estimator_hypergeo_ = df_best_estimator[df_best_estimator.error_hypergeo == df_best_estimator.error_hypergeo.min(
-        #         )].iat[0, 0]
+        if self.refit:
+            self.best_estimator_hypergeo_ = deepcopy(self.estimator)
+            self.best_estimator_hypergeo_.set_params(**self.best_params_hypergeo_)
+            try:
+                self.best_estimator_hypergeo_.fit(X, bags, proportions)
+            except ValueError:
+                self.best_estimator_hypergeo_ = None
+                warnings.warn("Error abs case: The best hyperparameters found by the CV process did not converge in the refit process. \
+                    The best hyperparameters are " + str(self.best_params_hypergeo_))
+        else:
+            df_best_estimator_hypergeo = df_best_estimator[df_best_estimator.error_hypergeo == df_best_estimator.error_hypergeo.min()]
+            train_index = df_best_estimator_hypergeo["train_index"].iloc[0]
+            # Fit the best_estimator_hypergeo_
+            self.best_estimator_hypergeo_ = deepcopy(self.estimator)
+            # Release GPU memory
+            torch.cuda.empty_cache()
+            self.best_estimator_hypergeo_.set_params(**self.best_params_hypergeo_)
+            self.best_estimator_hypergeo_.fit(X[train_index], bags[train_index], proportions)
     
     def predict(self, X, metric):
         if metric == "abs":
             return self.best_estimator_abs_.predict(X)
         elif metric == "oracle":
-            # Now we will refit the best estimator for the oracle metric
-
-            # First, delete the best estimator for the other metrics
-            try:
-                del self.best_estimator_abs_
-                del self.best_estimator_hypergeo_
-            except:
-                pass
-
-            # Second, release GPU memory
-            torch.cuda.empty_cache()
-
-            # Third, refit the best estimator for the oracle metric
-            if self.refit:
-                self.best_estimator_oracle_ = deepcopy(self.estimator)
-                self.best_estimator_oracle_.set_params(**self.best_params_oracle_)
-                try:
-                    self.best_estimator_oracle_.fit(self.X_, self.bags_, self.proportions_)
-                except ValueError:
-                    self.best_estimator_oracle_ = None
-                    warnings.warn("Error abs case: The best hyperparameters found by the CV process did not converge in the refit process. \
-                        The best hyperparameters are " + str(self.best_params_oracle_))
-            else:
-                self.best_estimator_oracle_ = self.df_best_estimator_oracle_[self.df_best_estimator_oracle_.error_oracle == self.df_best_estimator_oracle_.error_oracle.min(
-                    )].iat[0, 0]
             return self.best_estimator_oracle_.predict(X)
         elif metric == "hypergeo":
-            # Now we will refit the best estimator for the hypergeo metric
-
-            # First, delete the best estimator for the other metrics
-            try:
-                del self.best_estimator_abs_
-                del self.best_estimator_oracle_
-            except:
-                pass
-
-            # Second, release GPU memory
-            torch.cuda.empty_cache()
-
-            # Third, refit the best estimator for the hypergeo metric
-            if self.refit:
-                self.best_estimator_hypergeo_ = deepcopy(self.estimator)
-                self.best_estimator_hypergeo_.set_params(**self.best_params_hypergeo_)
-                try:
-                    self.best_estimator_hypergeo_.fit(self.X_, self.bags_, self.proportions_)
-                except ValueError:
-                    self.best_estimator_hypergeo_ = None
-                    warnings.warn("Error abs case: The best hyperparameters found by the CV process did not converge in the refit process. \
-                        The best hyperparameters are " + str(self.best_params_hypergeo_))
-            else:
-                self.best_estimator_hypergeo_ = self.df_best_estimator_hypergeo_[self.df_best_estimator_hypergeo_.error_hypergeo == self.df_best_estimator_hypergeo_.error_hypergeo.min(
-                    )].iat[0, 0]
-
             return self.best_estimator_hypergeo_.predict(X)
         else:
             return ValueError("metric %s is not valid" % metric)    

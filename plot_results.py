@@ -353,6 +353,134 @@ elif args.plot_type == "best-methods":
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
+    # Plot the count of the best algorithm in total
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rc('font', size=6)
+
+    D = df_best_methods.best_algorithm.value_counts()
+    D = D.reset_index(name="count")
+    best_methods_count = {}
+    # iterate over rows with iterrows()
+    for index, row in D.iterrows():
+        alg_list = eval(row["best_algorithm"])
+        for alg in alg_list:
+            try:
+                best_methods_count[alg] += row["count"]
+            except KeyError:
+                best_methods_count[alg] = row["count"]
+
+    D = pd.DataFrame.from_dict(best_methods_count, orient='index', columns=["count"])
+    D = D.reset_index()
+    D.rename(columns={"index": "Best Algorithm"}, inplace=True)
+    D = D.sort_values(by="count", ascending=False)
+    # Replace count with proportion
+    D["count"] = D["count"] / D["count"].sum()
+    D = D.sort_values(by="count", ascending=False)
+    D.rename(columns={"count": "Proportion"}, inplace=True)
+    g = sns.catplot(y="Best Algorithm", x="Proportion", data=D, kind="bar", errorbar=None, legend=False, height=2, aspect=1.5)
+    plt.xlabel("Proportion")
+    plt.ylabel("Best Algorithm")
+    plt.tight_layout()
+    filename = "plots/best-algorithms-count.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.close()
+
+    # Plot the count of the best algorithm per base dataset
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rc('font', size=6)
+
+    D = df_best_methods.groupby(["base_dataset"]).best_algorithm.value_counts()
+    D = D.reset_index(name="count")
+    best_methods_count = {}
+    for base_dataset in D.base_dataset.unique():
+        best_methods_count[base_dataset] = {}
+    
+    # iterate over rows with iterrows()
+    for index, row in D.iterrows():
+        alg_list = eval(row["best_algorithm"])
+        for alg in alg_list:
+            try:
+                best_methods_count[row["base_dataset"]][alg] += row["count"]
+            except KeyError:
+                best_methods_count[row["base_dataset"]][alg] = row["count"]
+
+    D = pd.DataFrame.from_dict(best_methods_count, orient='index')
+    D = D.reset_index()
+    D.rename(columns={"index": "Base Dataset"}, inplace=True)
+    D = D.sort_values(by="Base Dataset", ascending=False)
+    D = D.melt(id_vars=["Base Dataset"], var_name="Best Algorithm", value_name="Count")
+    D.dropna(inplace=True) # Removing algorithms that are not in the base dataset
+    # Replace count with proportion
+    D["Count"] = D["Count"] / D.groupby(["Base Dataset"])["Count"].transform('sum')
+    D = D.sort_values(by=["Base Dataset", "Count"], ascending=False)
+    D.rename(columns={"Count": "Proportion"}, inplace=True)
+
+    g = sns.catplot(y="Base Dataset", x="Proportion", hue="Best Algorithm", data=D, kind="bar", errorbar=None, legend=False, height=2, aspect=1.5, hue_order=sorted(D["Best Algorithm"].unique()))
+    plt.legend(loc="center right", borderaxespad=0., fontsize=5)
+    plt.xlabel("Proportion")
+    plt.ylabel("Base Dataset")
+    plt.tight_layout()
+    filename = "plots/best-algorithms-count-per-base-dataset.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.close()
+
+    # Plot the count of the best algorithm per base dataset and dataset variant
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rc('font', size=6)
+
+    D = df_best_methods.groupby(["base_dataset", "dataset_variant"]).best_algorithm.value_counts()
+    D = D.reset_index(name="count")
+    best_methods_count = {}
+    for base_dataset in D.base_dataset.unique():
+        best_methods_count[base_dataset] = {}
+        for dataset_variant in D.dataset_variant.unique():
+            best_methods_count[base_dataset][dataset_variant] = {}
+
+    # iterate over rows with iterrows()
+    for index, row in D.iterrows():
+        alg_list = eval(row["best_algorithm"])
+        for alg in alg_list:
+            try:
+                best_methods_count[row["base_dataset"]][row["dataset_variant"]][alg] += row["count"]
+            except KeyError:
+                best_methods_count[row["base_dataset"]][row["dataset_variant"]][alg] = row["count"]
+    
+    D = pd.DataFrame.from_dict(best_methods_count, orient='index')
+    D = D.reset_index()
+    D.rename(columns={"index": "Base Dataset"}, inplace=True)
+    D = D.sort_values(by="Base Dataset", ascending=False)
+    D = D.melt(id_vars=["Base Dataset"], var_name="Dataset Variant", value_name="Count")
+    # Convert dictionaries to columns
+    D_expanded = pd.concat([D['Count'].apply(pd.Series)], axis=1)
+    D = pd.concat([D, D_expanded], axis=1)
+    D = D.drop('Count', axis=1)
+    D.replace({np.nan: 0}, inplace=True)
+    D = D.melt(id_vars=["Base Dataset", "Dataset Variant"], var_name="Best Algorithm", value_name="Count")
+    # Replace count with proportion
+    D["Count"] = D["Count"] / D.groupby(["Base Dataset", "Dataset Variant"])["Count"].transform('sum')
+    D = D.sort_values(by=["Base Dataset", "Dataset Variant", "Count"], ascending=False)
+    D.rename(columns={"Count": "Proportion"}, inplace=True)
+    
+    # Plot (Base Dataset, Dataset Variant) combinations
+    g = sns.catplot(y="Base Dataset", x="Proportion", hue="Best Algorithm", col="Dataset Variant", data=D, kind="bar", errorbar=None, legend=False, height=2, aspect=1.5, hue_order=sorted(D["Best Algorithm"].unique()))
+    g.set_titles("{col_name}")
+    plt.legend(loc="center right", borderaxespad=0., fontsize=5)
+    plt.xlabel("Proportion")
+    plt.ylabel("Base Dataset")
+    plt.tight_layout()
+    filename = "plots/best-algorithms-count-per-base-dataset-and-dataset-variant.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.close()
+
 elif args.plot_type == "table-all-results":
     get_performance = lambda x: f"{np.round(x.f1_test.mean(), 4)} ({np.round(1.96 * np.std(x.f1_test.values)/np.sqrt(len(x.f1_test.values)), 4)})"
 
