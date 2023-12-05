@@ -20,6 +20,7 @@ from llp_learn.em import EM
 from llp_learn.dllp import DLLP
 from llp_learn.util import compute_proportions
 from llp_learn.mixbag import MixBag
+from llp_learn.llpvat import LLPVAT
 
 from grid_search_experiments import gridSearchCVExperiments
 from almostnolabel import MM, LMM, AMM
@@ -74,7 +75,7 @@ if __name__ == "__main__":
             411932339, 1446558659, 1448895932,  952198910, 3882231031]
     
     NN_BASED_METHODS = [
-        "dllp", "mixbag"
+        "dllp", "mixbag", "llp-vat"
     ]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
@@ -126,7 +127,7 @@ if __name__ == "__main__":
             params = {"lmd": [0, 1, 10, 100], "gamma": [0.01, 0.1, 1], "sigma": [1]}
         elif args.model == "mm":
             params = {"lmd": [0, 1, 10, 100]}
-        elif args.model == "dllp" or args.model == "mixbag":
+        elif args.model in NN_BASED_METHODS:
             params = {"lr": [0.1, 0.01, 0.001, 0.0001, 0.00001]}
         else:
             params = {"C": [0.1, 1, 10], "C_p": [1, 10, 100]}
@@ -210,6 +211,12 @@ if __name__ == "__main__":
             eps = 6.0
             ip = 1
             model = MixBag(lr=0.01, n_epochs=100, hidden_layer_sizes=(1000,), n_jobs=0, random_state=seed[execution], device=device, model_type=model_type, pretrained=True, choice=choice, confidence_interval=confidence_interval, consistency=consistency, xi=xi, eps=eps, ip=ip)
+        elif args.model == "llp-vat":
+            # Hyperparameters for VAT (from their implementation, available at: https://github.com/kevinorjohn/LLP-VAT/blob/a111d6785e8b0b79761c4d68c5b96288048594d6/llp_vat/main.py#L360)
+            xi = 1e-6
+            eps = 6.0
+            ip = 1
+            model = LLPVAT(lr=0.01, n_epochs=100, hidden_layer_sizes=(1000,), n_jobs=0, random_state=seed[execution], device=device, model_type=model_type, pretrained=True, xi=xi, eps=eps, ip=ip)
 
         if args.model in NN_BASED_METHODS:
             # In the NN based methods, we use only one job (n_jobs=1)
