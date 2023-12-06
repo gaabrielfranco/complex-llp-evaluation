@@ -76,6 +76,42 @@ done
 #     done
 # done
 
+# Mixbag that I have to rerun due to memory issues (breaking the bags)
+
+# Dataset: cifar-10-grey-animal-vehicle-naive-small-not-equal-None-cluster-None-None
+# Model: mixbag
+# Loss function: abs
+# Params: {'lr': [0.1, 0.01, 0.001, 0.0001, 1e-05]}
+# n_splits: 5
+# validation_size: 0.5
+# splitter: split-bag-shuffle
+# Execution: 1
+
+# ----------------------------------------
+# Dataset: cifar-10-grey-animal-vehicle-simple-small-not-equal-close-global-cluster-None-None
+# Model: mixbag
+# Loss function: abs
+# Params: {'lr': [0.1, 0.01, 0.001, 0.0001, 1e-05]}
+# n_splits: 5
+# validation_size: 0.5
+# splitter: split-bag-shuffle
+# Execution: 0
+# ----------------------------------------
+
+# ----------------------------------------
+# Dataset: cifar-10-grey-animal-vehicle-simple-small-not-equal-mixed-cluster-None-None
+# Model: mixbag
+# Loss function: abs
+# Params: {'lr': [0.1, 0.01, 0.001, 0.0001, 1e-05]}
+# n_splits: 5
+# validation_size: 0.5
+# splitter: split-bag-shuffle
+# Execution: 1
+# ----------------------------------------
+
+
+
+
 # for dataset in "cifar-10-grey-animal-vehicle-naive-large-not-equal-None-cluster-None-None"
 # do
 #     for model in "mixbag"
