@@ -1,12 +1,76 @@
-# os.environ["OMP_NUM_THREADS"] = str(N_JOBS) # export OMP_NUM_THREADS=4
-# os.environ["OPENBLAS_NUM_THREADS"] = str(N_JOBS) # export OPENBLAS_NUM_THREADS=4 
-# os.environ["MKL_NUM_THREADS"] = str(N_JOBS) # export MKL_NUM_THREADS=6
-# os.environ["VECLIB_MAXIMUM_THREADS"] = str(N_JOBS) # export VECLIB_MAXIMUM_THREADS=4
-# os.environ["NUMEXPR_NUM_THREADS"] = str(N_JOBS) # export NUMEXPR_NUM_THREADS=6
+"""
+----------------------------------------
+Dataset: cifar-10-grey-animal-vehicle-naive-small-not-equal-None-cluster-None-None
+Model: mixbag
+Loss function: abs
+Params: {'lr': [0.1, 0.01, 0.001, 0.0001, 1e-05]}
+n_splits: 5
+validation_size: 0.5
+splitter: split-bag-shuffle
+Execution: 1
+----------------------------------------
+
+Breaking bags (training) due to memory issues!!!
+Before
+Bags sizes: [13963 13725  6831  6963  3518]
+Proportions: [0.60209124 0.59985428 0.60518226 0.60261382 0.61284821]
+
+After
+Bags sizes: [ 6982 13725  6831  6963  3518  6981]
+Proportions: [0.60209124 0.59985428 0.60518226 0.60261382 0.61284821 0.60209124]
+
+________________________________________________________________________________
+
+
+----------------------------------------
+Dataset: cifar-10-grey-animal-vehicle-simple-small-not-equal-close-global-cluster-None-None
+Model: mixbag
+Loss function: abs
+Params: {'lr': [0.1, 0.01, 0.001, 0.0001, 1e-05]}
+n_splits: 5
+validation_size: 0.5
+splitter: split-bag-shuffle
+Execution: 0
+----------------------------------------
+
+Breaking bags (training) due to memory issues!!!
+Before
+Bags sizes: [13934 13743  6956  6871  3496]
+Proportions: [0.7033874  0.51538965 0.70385279 0.41362247 0.69965675]
+
+After
+Bags sizes: [ 6967 13743  6956  6871  3496  6967]
+Proportions: [0.7033874  0.51538965 0.70385279 0.41362247 0.69965675 0.7033874 ]
+
+
+________________________________________________________________________________
+
+----------------------------------------
+Dataset: cifar-10-grey-animal-vehicle-simple-small-not-equal-mixed-cluster-None-None
+Model: mixbag
+Loss function: abs
+Params: {'lr': [0.1, 0.01, 0.001, 0.0001, 1e-05]}
+n_splits: 5
+validation_size: 0.5
+splitter: split-bag-shuffle
+Execution: 1
+----------------------------------------
+
+Breaking bags (training) due to memory issues!!!
+Before
+Bags sizes: [14969 12283  6896  7253  3599]
+Proportions: [0.92243971 0.12293414 0.56902552 0.74769061 0.68380106]
+
+After
+Bags sizes: [ 7485 12283  6896  7253  3599  7484]
+Proportions: [0.92243971 0.12293414 0.56902552 0.74769061 0.68380106 0.92243971]
+
+"""
 
 import argparse
 import os
 import sys
+import numpy as np
 import pandas as pd
 import time
 import warnings
@@ -21,6 +85,7 @@ from llp_learn.dllp import DLLP
 from llp_learn.util import compute_proportions
 from llp_learn.mixbag import MixBag
 from llp_learn.llpvat import LLPVAT
+from llp_learn.llpfc import LLPFC
 
 from grid_search_experiments import gridSearchCVExperiments
 from almostnolabel import MM, LMM, AMM
@@ -75,7 +140,38 @@ if __name__ == "__main__":
             411932339, 1446558659, 1448895932,  952198910, 3882231031]
     
     NN_BASED_METHODS = [
-        "dllp", "mixbag", "llp-vat"
+        "dllp", "mixbag", "llp-vat", "llpfc"
+    ]
+
+    # Experiments that we have to break the bags due to memory issues
+    BREAKING_BAGS = [
+        {
+            "dataset": "cifar-10-grey-animal-vehicle-naive-small-not-equal-None-cluster-None-None",
+            "model": "mixbag",
+            "loss": "abs",
+            "n_splits": 5,
+            "validation_size": 0.5,
+            "splitter": "split-bag-shuffle",
+            "execution": 1
+        },
+        {
+            "dataset": "cifar-10-grey-animal-vehicle-simple-small-not-equal-close-global-cluster-None-None",
+            "model": "mixbag",
+            "loss": "abs",
+            "n_splits": 5,
+            "validation_size": 0.5,
+            "splitter": "split-bag-shuffle",
+            "execution": 0
+        },
+        {
+            "dataset": "cifar-10-grey-animal-vehicle-simple-small-not-equal-mixed-cluster-None-None",
+            "model": "mixbag",
+            "loss": "abs",
+            "n_splits": 5,
+            "validation_size": 0.5,
+            "splitter": "split-bag-shuffle",
+            "execution": 1
+        },
     ]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
@@ -132,7 +228,6 @@ if __name__ == "__main__":
         else:
             params = {"C": [0.1, 1, 10], "C_p": [1, 10, 100]}
 
-
         print("----------------------------------------")
         print("Dataset: %s" % args.dataset)
         print("Model: %s" % args.model)
@@ -184,6 +279,34 @@ if __name__ == "__main__":
 
         proportions = compute_proportions(bags_train, y_train)
 
+        # Breaking bags due to memory issues. We are breaking the bag with the highest number of instances.
+        for breaking_bag in BREAKING_BAGS:
+            if args.dataset == breaking_bag["dataset"] and args.model == breaking_bag["model"] and args.loss == breaking_bag["loss"] and args.n_splits == breaking_bag["n_splits"] and args.validation_size == breaking_bag["validation_size"] and args.splitter == breaking_bag["splitter"] and execution == breaking_bag["execution"]:
+                print("Breaking bags (training) due to memory issues!!!")
+                _, bags_counts = np.unique(bags_train, return_counts=True)
+                bag_break = np.argmax(bags_counts)
+                bag_break_idx = np.where(bags_train == bag_break)[0]
+                # Using random seed
+                random = np.random.RandomState(seed[execution])
+                random.shuffle(bag_break_idx)
+                bag_break_idx = bag_break_idx[:len(bag_break_idx) // 2]
+                new_bag_idx = np.max(bags_train) + 1
+                bags_train[bag_break_idx] = new_bag_idx
+                # Not recomputing the proportions after breaking the bags
+                print("Before")
+                print(f"Bags sizes: {bags_counts}")
+                print(f"Proportions: {proportions}")
+                print()
+
+                proportions = list(proportions)
+                proportions.append(proportions[bag_break])
+                proportions = np.array(proportions)
+
+
+                print("After")
+                print(f"Bags sizes: {np.unique(bags_train, return_counts=True)[1]}")
+                print(f"Proportions: {proportions}")
+
         df_results = pd.DataFrame(columns=["metric", "accuracy_train", "accuracy_test", "f1_train", "f1_test", "best_hyperparams"])
 
         print("Model type: %s" % model_type)
@@ -217,6 +340,14 @@ if __name__ == "__main__":
             eps = 6.0
             ip = 1
             model = LLPVAT(lr=0.01, n_epochs=100, hidden_layer_sizes=(1000,), n_jobs=0, random_state=seed[execution], device=device, model_type=model_type, pretrained=True, xi=xi, eps=eps, ip=ip)
+        elif args.model == "llpfc":
+            # Hyperparameters for LLPFC (using their default and the best noisy prior in the ResNet-18 experiments in the paper)
+            batch_size = 128
+            noisy_prior_choice = "approx"
+            weights = "uniform"
+            num_epoch_regroup = 20
+
+            model = LLPFC(lr=0.01, n_epochs=100, model_type=model_type, device=device, pretrained=True, hidden_layer_sizes=(1000,), batch_size=batch_size, noisy_prior_choice=noisy_prior_choice, weights=weights, num_epoch_regroup=num_epoch_regroup, verbose=False, n_jobs=0, random_state=seed[execution])
 
         if args.model in NN_BASED_METHODS:
             # In the NN based methods, we use only one job (n_jobs=1)
