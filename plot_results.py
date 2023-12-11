@@ -79,6 +79,7 @@ model_map = {
     "amm": "AMM",
     "mixbag": "MixBag + LLP-VAT",
     "llp-vat": "LLP-VAT",
+    "llpfc": "LLPFC",
 }
 
 # Getting the infos about the datasets
