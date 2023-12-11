@@ -182,7 +182,7 @@ if __name__ == "__main__":
     # Parsing arguments
     parser = argparse.ArgumentParser(description="LLP benchmark experiments")
     parser.add_argument("--dataset", "-d", required=True, help="the dataset that will be used in the experiments")
-    parser.add_argument("--model", "-m", choices=["kdd-lr", "lmm", "amm", "mm", "dllp", "mixbag", "llp-vat"], required=True,
+    parser.add_argument("--model", "-m", choices=["kdd-lr", "lmm", "amm", "mm", "dllp", "mixbag", "llp-vat", "llpfc"], required=True,
                         help="the model that will be used in the experiments")
     parser.add_argument("--loss", "-l", choices=["abs"],
                         help="the loss function that will be used in the experiment")

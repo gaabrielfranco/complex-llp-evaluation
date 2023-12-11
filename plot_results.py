@@ -76,7 +76,9 @@ model_map = {
     "kdd-lr": "EM/LR",
     "mm": "MM",
     "dllp": "DLLP",
-    "amm": "AMM"
+    "amm": "AMM",
+    "mixbag": "MixBag + LLP-VAT",
+    "llp-vat": "LLP-VAT",
 }
 
 # Getting the infos about the datasets
@@ -362,6 +364,8 @@ elif args.plot_type == "best-methods":
 
     D = df_best_methods.best_algorithm.value_counts()
     D = D.reset_index(name="count")
+    D.rename(columns={"index": "best_algorithm"}, inplace=True)
+
     best_methods_count = {}
     # iterate over rows with iterrows()
     for index, row in D.iterrows():
@@ -397,6 +401,8 @@ elif args.plot_type == "best-methods":
 
     D = df_best_methods.groupby(["base_dataset"]).best_algorithm.value_counts()
     D = D.reset_index(name="count")
+    D.rename(columns={"index": "best_algorithm"}, inplace=True)
+
     best_methods_count = {}
     for base_dataset in D.base_dataset.unique():
         best_methods_count[base_dataset] = {}
@@ -444,6 +450,8 @@ elif args.plot_type == "best-methods":
         best_methods_count[base_dataset] = {}
         for dataset_variant in D.dataset_variant.unique():
             best_methods_count[base_dataset][dataset_variant] = {}
+
+    D.rename(columns={"index": "best_algorithm"}, inplace=True)
 
     # iterate over rows with iterrows()
     for index, row in D.iterrows():
