@@ -277,7 +277,7 @@ if __name__ == "__main__":
             if args.model in NN_BASED_METHODS:
                 X_train, X_test = X_train.astype("float32"), X_test.astype("float32")
 
-        proportions = compute_proportions(bags_train, y_train)
+        proportions = compute_proportions(bags_train, y_train) # TODO: change it
 
         # Breaking bags due to memory issues. We are breaking the bag with the highest number of instances.
         for breaking_bag in BREAKING_BAGS:

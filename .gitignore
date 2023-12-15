@@ -12,6 +12,8 @@ adult.test
 adult.names
 Mixbag/
 llp-benchmark-results/
+test_32x32.mat
+train_32x32.mat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

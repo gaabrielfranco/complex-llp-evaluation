@@ -30,9 +30,12 @@ X_train = X_train.reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1).astype("uint8")
 
 X_test = X_test.reshape(-1, 3, 32, 32).transpose(0, 2, 3, 1).astype("uint8")
 
+X_train = np.array([cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in X_train])
+X_test = np.array([cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) for image in X_test])
+
 # Flatten images
-X_train = X_train.reshape(-1, 3*32*32)
-X_test = X_test.reshape(-1, 3*32*32)
+X_train = X_train.reshape(-1, 32*32)
+X_test = X_test.reshape(-1, 32*32)
 
 # Create dataframe
 df_train = pd.DataFrame(X_train)
@@ -43,7 +46,7 @@ df_test['label'] = y_test
 
 df = pd.concat([df_train, df_test])
 df = df.sample(frac=1, random_state=42).reset_index(drop=True)
-df = df.rename(columns={i: str(i) for i in range(3*32*32)})
+df = df.rename(columns={i: str(i) for i in range(1024)})
 
-df.to_parquet("cifar-10.parquet")
+df.to_parquet("cifar-10-grey.parquet")
 print("File saved to cifar-10-grey.parquet")
