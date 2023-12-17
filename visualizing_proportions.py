@@ -1,4 +1,5 @@
 from copy import deepcopy
+import matplotlib
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -33,69 +34,83 @@ def compute_proportions(bags, y):
 
     return proportions
 
-# Set the style
-sns.set_style('whitegrid')
-
 # Load the datasets
-base_dataset = "cifar-10"
-hard_dataset = "cifar-10-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40"
-intermediate_dataset = "cifar-10-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40"
-simple_dataset = "cifar-10-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40"
-naive_dataset = "cifar-10-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40"
+for n_bags in [30, 40, 50]:
+    if n_bags == 30:
+        n_bags_name = "extra-large"
+    elif n_bags == 40:
+        n_bags_name = "extra-extra-large"
+    elif n_bags == 50:
+        n_bags_name = "massive"
 
-# Reading X, y (base dataset) and bags (dataset)
-df = pd.read_parquet("datasets-ci/" + base_dataset + ".parquet")
-y = deepcopy(df["y"].values)
-y = y.reshape(-1)
+    base_dataset = "cifar-10"
+    hard_dataset = f"cifar-10-hard-{n_bags_name}-fol-clust-fol-clust-cluster-kmeans-autoencoder-{n_bags}"
+    intermediate_dataset = f"cifar-10-intermediate-{n_bags_name}-fol-clust-fol-clust-cluster-kmeans-autoencoder-{n_bags}"
+    simple_dataset = f"cifar-10-simple-{n_bags_name}-fol-clust-fol-clust-cluster-kmeans-autoencoder-{n_bags}"
+    naive_dataset = f"cifar-10-naive-{n_bags_name}-fol-clust-None-cluster-kmeans-autoencoder-{n_bags}"
 
-proportions_hard, proportions_intermediate, proportions_simple, proportions_naive = None, None, None, None
-for dataset in [hard_dataset, intermediate_dataset, simple_dataset, naive_dataset]:
-    df = pd.read_parquet(f"datasets-ci/{dataset}.parquet")
-    bags = df["bag"].values
-    bags = bags.reshape(-1)
-    proportions = compute_proportions(bags, y)
-    if dataset == hard_dataset:
-        proportions_hard = proportions
-    elif dataset == intermediate_dataset:
-        proportions_intermediate = proportions
-    elif dataset == simple_dataset:
-        proportions_simple = proportions
-    elif dataset == naive_dataset:
-        proportions_naive = proportions
+    # Reading X, y (base dataset) and bags (dataset)
+    df = pd.read_parquet("datasets-ci/" + base_dataset + ".parquet")
+    y = deepcopy(df["y"].values)
+    y = y.reshape(-1)
+
+    proportions_hard, proportions_intermediate, proportions_simple, proportions_naive = None, None, None, None
+    for dataset in [hard_dataset, intermediate_dataset, simple_dataset, naive_dataset]:
+        df = pd.read_parquet(f"datasets-ci/{dataset}.parquet")
+        bags = df["bag"].values
+        bags = bags.reshape(-1)
+        proportions = compute_proportions(bags, y)
+        if dataset == hard_dataset:
+            proportions_hard = proportions
+        elif dataset == intermediate_dataset:
+            proportions_intermediate = proportions
+        elif dataset == simple_dataset:
+            proportions_simple = proportions
+        elif dataset == naive_dataset:
+            proportions_naive = proportions
 
 
-# Plot the heatmap of the cosine similarity matrix of the proportions (subplots for each dataset)
-fig, ax = plt.subplots(2, 2, figsize=(15, 5))
-# Compute the cosine similarity matrix
-from sklearn.metrics.pairwise import cosine_similarity
-cosine_similarity_matrix_hard = cosine_similarity(proportions_hard)
-cosine_similarity_matrix_intermediate = cosine_similarity(proportions_intermediate)
-cosine_similarity_matrix_simple = cosine_similarity(proportions_simple)
-cosine_similarity_matrix_naive = cosine_similarity(proportions_naive)
+    # Plot the heatmap of the cosine similarity matrix of the proportions (subplots for each dataset)
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rcParams['axes.edgecolor'] = 'black'
+    plt.rc('font', size=6)
 
-# Plot the heatmap
-sns.heatmap(cosine_similarity_matrix_hard, ax=ax[0, 0], cmap="Blues", vmin=0.0, vmax=1.0)
-sns.heatmap(cosine_similarity_matrix_intermediate, ax=ax[0, 1], cmap="Blues", vmin=0.0, vmax=1.0)
-sns.heatmap(cosine_similarity_matrix_simple, ax=ax[1, 0], cmap="Blues", vmin=0.0, vmax=1.0)
-sns.heatmap(cosine_similarity_matrix_naive, ax=ax[1, 1], cmap="Blues", vmin=0.0, vmax=1.0)
+    fig, ax = plt.subplots(2, 2, figsize=(7.5, 5))
+    # Compute the cosine similarity matrix
+    from sklearn.metrics.pairwise import cosine_similarity
+    cosine_similarity_matrix_hard = cosine_similarity(proportions_hard)
+    cosine_similarity_matrix_intermediate = cosine_similarity(proportions_intermediate)
+    cosine_similarity_matrix_simple = cosine_similarity(proportions_simple)
+    cosine_similarity_matrix_naive = cosine_similarity(proportions_naive)
 
-# Set the titles
-ax[0, 0].set_title("Hard")
-ax[0, 1].set_title("Intermediate")
-ax[1, 0].set_title("Simple")
-ax[1, 1].set_title("Naive")
+    # Plot the heatmap
+    sns.heatmap(cosine_similarity_matrix_hard, ax=ax[0, 0], cmap="Blues", vmin=0.0, vmax=1.0)
+    sns.heatmap(cosine_similarity_matrix_intermediate, ax=ax[0, 1], cmap="Blues", vmin=0.0, vmax=1.0)
+    sns.heatmap(cosine_similarity_matrix_simple, ax=ax[1, 0], cmap="Blues", vmin=0.0, vmax=1.0)
+    sns.heatmap(cosine_similarity_matrix_naive, ax=ax[1, 1], cmap="Blues", vmin=0.0, vmax=1.0)
 
-# Set the labels
-ax[0, 0].set_xlabel("Bags")
-ax[0, 0].set_ylabel("Bags")
-ax[0, 1].set_xlabel("Bags")
-ax[0, 1].set_ylabel("Bags")
-ax[1, 0].set_xlabel("Bags")
-ax[1, 0].set_ylabel("Bags")
-ax[1, 1].set_xlabel("Bags")
-ax[1, 1].set_ylabel("Bags")
+    # Set the titles
+    ax[0, 0].set_title("Hard")
+    ax[0, 1].set_title("Intermediate")
+    ax[1, 0].set_title("Simple")
+    ax[1, 1].set_title("Naive")
 
-plt.show()
+    # Set the labels
+
+    ax[0, 0].set_ylabel("Bags")
+    ax[0, 1].set_ylabel("Bags")
+    ax[1, 0].set_xlabel("Bags")
+    ax[1, 1].set_xlabel("Bags")
+
+    plt.suptitle(f"CIFAR-10 with {n_bags} bags")
+
+    plt.tight_layout()
+    plt.savefig(f"cifar-10-proportions-{n_bags}.png", dpi=800)
+    plt.close()
+
 
         
 

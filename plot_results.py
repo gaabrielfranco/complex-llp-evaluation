@@ -428,8 +428,11 @@ elif args.plot_type == "best-methods":
     D = D.sort_values(by=["Base Dataset", "Count"], ascending=False)
     D.rename(columns={"Count": "Proportion"}, inplace=True)
 
-    g = sns.catplot(y="Base Dataset", x="Proportion", hue="Best Algorithm", data=D, kind="bar", errorbar=None, legend=False, height=2, aspect=1.5, hue_order=sorted(D["Best Algorithm"].unique()))
-    plt.legend(loc="center right", borderaxespad=0., fontsize=5)
+    g = sns.catplot(y="Base Dataset", x="Proportion", hue="Best Algorithm", data=D, kind="bar", errorbar=None, legend=False, height=2, aspect=1.5, hue_order=sorted(D["Best Algorithm"].unique()), palette="husl")
+    plt.legend(loc="best", borderaxespad=0., fontsize=5)
+    # xticks set
+    g.set(xticks=[0, 0.2, 0.4, 0.6])
+    g.set_xticklabels(["0", "0.2", "0.4", "0.6"])
     plt.xlabel("Proportion")
     plt.ylabel("Base Dataset")
     plt.tight_layout()
@@ -480,7 +483,7 @@ elif args.plot_type == "best-methods":
     D.rename(columns={"Count": "Proportion"}, inplace=True)
     
     # Plot (Base Dataset, Dataset Variant) combinations
-    g = sns.catplot(y="Base Dataset", x="Proportion", hue="Best Algorithm", col="Dataset Variant", data=D, kind="bar", errorbar=None, legend=False, height=2, aspect=1.5, hue_order=sorted(D["Best Algorithm"].unique()))
+    g = sns.catplot(y="Base Dataset", x="Proportion", hue="Best Algorithm", col="Dataset Variant", data=D, kind="bar", errorbar=None, legend=False, height=2, aspect=1.5, hue_order=sorted(D["Best Algorithm"].unique()), palette="husl", col_wrap=2)
     g.set_titles("{col_name}")
     plt.legend(loc="center right", borderaxespad=0., fontsize=5)
     plt.xlabel("Proportion")

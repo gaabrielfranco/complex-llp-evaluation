@@ -10,6 +10,10 @@ import torch
 
 class gridSearchCVExperiments(gridSearchCV):
     def _evaluate_candidate(self, X, bags, proportions, arg):
+        if len(proportions.shape) == 1:
+            n_classes = 2
+        else:
+            n_classes = proportions.shape[1]
         est, param_id, param, train_index, validation_index = arg
         estimator = deepcopy(est)
         estimator.set_params(**param)
@@ -19,7 +23,7 @@ class gridSearchCVExperiments(gridSearchCV):
             return None
         y_pred_validation = estimator.predict(X[validation_index])
 
-        predicted_proportions = np.empty(len(proportions))
+        predicted_proportions = np.empty(proportions.shape, float)
         bag_size_validation = np.empty(len(proportions), int)
         num_bags = len(proportions)
 
@@ -28,39 +32,51 @@ class gridSearchCVExperiments(gridSearchCV):
             bag_validation = np.where(bags[validation_index] == i)[0]
             bag_size_validation[i] = len(bag_validation)
             y_pred_bag_validation = y_pred_validation[bag_validation]
-            if len(bag_validation) == 0:
-                predicted_proportions[i] = np.nan
+            if n_classes == 2:
+                if len(bag_validation) == 0:
+                    predicted_proportions[i] = np.nan
+                else:
+                    predicted_proportions[i] = np.count_nonzero(
+                        y_pred_bag_validation == 1) / len(y_pred_bag_validation)
             else:
-                predicted_proportions[i] = np.count_nonzero(
-                    y_pred_bag_validation == 1) / len(y_pred_bag_validation)
+                if len(bag_validation) == 0:
+                    for j in range(n_classes):
+                        predicted_proportions[i, j] = np.nan
+                else:
+                    for j in range(n_classes):
+                        predicted_proportions[i, j] = np.count_nonzero(
+                            y_pred_bag_validation == j) / len(y_pred_bag_validation)
 
-        # # Hypergeometric loss
-        if self.splitter == "split-bag-shuffle":
-            N = np.empty(num_bags, int)
-            n = np.empty(num_bags, int)
-            k = np.empty(num_bags, int)
-            for i in range(num_bags):
-                bag_train = np.where(bags[train_index] == i)[0]
-                bag_validation = np.where(bags[validation_index] == i)[0]
-                N[i] = len(bag_train) + len(bag_validation)
-                n[i] = len(bag_validation)
-                k[i] = np.count_nonzero(y_pred_validation[bag_validation] == 1)
+        # # Hypergeometric loss (only for binary classification)
+        if n_classes == 2:
+            if self.splitter == "split-bag-shuffle":
+                N = np.empty(num_bags, int)
+                n = np.empty(num_bags, int)
+                k = np.empty(num_bags, int)
+                for i in range(num_bags):
+                    bag_train = np.where(bags[train_index] == i)[0]
+                    bag_validation = np.where(bags[validation_index] == i)[0]
+                    N[i] = len(bag_train) + len(bag_validation)
+                    n[i] = len(bag_validation)
+                    k[i] = np.count_nonzero(y_pred_validation[bag_validation] == 1)
 
-            K = np.round(proportions * N).astype(int) # K items in each bag
-            err_hypergeo = -hypergeom.logpmf(k, N, K, n)
-            err_hypergeo[np.isinf(err_hypergeo)] = 10e5
-            err_hypergeo = np.sum(err_hypergeo)
-        elif self.splitter == "split-bag-bootstrap":
-            n = np.empty(num_bags, int)
-            k = np.empty(num_bags, int)
-            for i in range(num_bags):
-                bag_train = np.where(bags[train_index] == i)[0]
-                bag_validation = np.where(bags[validation_index] == i)[0]
-                n[i] = len(bag_train) + len(bag_validation)
-                k[i] = np.count_nonzero(y_pred_validation[bag_validation] == 1)
-            err_hypergeo = -binom.logpmf(k, n, proportions)
-            err_hypergeo[np.isinf(err_hypergeo)] = 10e5
-            err_hypergeo = np.sum(err_hypergeo)
+                K = np.round(proportions * N).astype(int) # K items in each bag
+                err_hypergeo = -hypergeom.logpmf(k, N, K, n)
+                err_hypergeo[np.isinf(err_hypergeo)] = 10e5
+                err_hypergeo = np.sum(err_hypergeo)
+            elif self.splitter == "split-bag-bootstrap":
+                n = np.empty(num_bags, int)
+                k = np.empty(num_bags, int)
+                for i in range(num_bags):
+                    bag_train = np.where(bags[train_index] == i)[0]
+                    bag_validation = np.where(bags[validation_index] == i)[0]
+                    n[i] = len(bag_train) + len(bag_validation)
+                    k[i] = np.count_nonzero(y_pred_validation[bag_validation] == 1)
+                err_hypergeo = -binom.logpmf(k, n, proportions)
+                err_hypergeo[np.isinf(err_hypergeo)] = 10e5
+                err_hypergeo = np.sum(err_hypergeo)
+            else:
+                err_hypergeo = 0.0 # Not implemented
         else:
             err_hypergeo = 0.0 # Not implemented
 

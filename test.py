@@ -1,6 +1,6 @@
 import glob
 
-files = glob.glob("datasets-ci/cifar*")
+files = glob.glob("datasets-ci/cifar-10-[naive|simple|intermediate|hard]*")
 files = sorted(files)
 
 for file in files:

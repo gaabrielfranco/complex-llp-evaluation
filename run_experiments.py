@@ -82,7 +82,6 @@ from sklearn.preprocessing import MinMaxScaler
 
 from llp_learn.em import EM
 from llp_learn.dllp import DLLP
-from llp_learn.util import compute_proportions
 from llp_learn.mixbag import MixBag
 from llp_learn.llpvat import LLPVAT
 from llp_learn.llpfc import LLPFC
@@ -92,6 +91,36 @@ from almostnolabel import MM, LMM, AMM
 
 import torchvision.transforms as transforms
 import torch
+
+def compute_proportions(bags, y):
+    """Compute the proportions for each bag given.
+    Parameters
+    ----------
+    bags : {array-like}
+    y : {array-like}
+
+    Returns
+    -------
+    proportions : {array}
+        An array of type np.float
+    """
+    n_classes = len(np.unique(y))
+    num_bags = len(np.unique(bags))
+
+    if n_classes == 2:
+        proportions = np.empty(num_bags, dtype=float)
+        for i in range(num_bags):
+            bag = np.where(bags == i)[0]
+            proportions[i] = np.count_nonzero(y[bag] == 1) / len(bag)
+    else:
+        proportions = np.empty((num_bags, n_classes), dtype=float)
+        for i in range(num_bags):
+            bag = np.where(bags == i)[0]
+            for j in range(n_classes):
+                proportions[i, j] = np.count_nonzero(y[bag] == j) / len(bag)
+
+    return proportions
+
 
 VARIANTS = ["naive", "simple", "intermediate", "hard"]
 
@@ -124,7 +153,7 @@ def load_dataset(args, execution):
 
 if __name__ == "__main__":
     # Constants
-    n_executions = 5 # Number of executions (it was 30 before, maybe will increase in the future)
+    n_executions = 5 # Number of executions
 
     try:
         N_JOBS = eval(os.getenv('NSLOTS'))
@@ -253,10 +282,16 @@ if __name__ == "__main__":
             X = X.transpose(0, 2, 3, 1)
 
             # Normalizing using pytorch normalization
-            transform = transforms.Compose([
-                transforms.ToTensor(),
-                transforms.Normalize((0.5,), (0.5,))
-            ])
+            if n_channels == 1:
+                transform = transforms.Compose([
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.5,), (0.5,))
+                ])
+            else:
+                transform = transforms.Compose([
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.5, 0.5, 0.5,), (0.5, 0.5, 0.5,))
+                ])
 
             X = [transform(x) for x in X]
             X = torch.stack(X)
@@ -277,7 +312,7 @@ if __name__ == "__main__":
             if args.model in NN_BASED_METHODS:
                 X_train, X_test = X_train.astype("float32"), X_test.astype("float32")
 
-        proportions = compute_proportions(bags_train, y_train) # TODO: change it
+        proportions = compute_proportions(bags_train, y_train)
 
         # Breaking bags due to memory issues. We are breaking the bag with the highest number of instances.
         for breaking_bag in BREAKING_BAGS:
@@ -361,6 +396,9 @@ if __name__ == "__main__":
         
         metrics = ["abs", "oracle", "hypergeo"]
 
+        n_classes = len(np.unique(y))
+        average = "binary" if n_classes == 2 else "macro"
+
         if not sys.warnoptions:
             warnings.simplefilter("ignore")
             os.environ["PYTHONWARNINGS"] = "ignore"
@@ -371,8 +409,8 @@ if __name__ == "__main__":
                 y_pred_test = gs.predict(X_test, metric)
                 accuracy_train = accuracy_score(y_train, y_pred_train)
                 accuracy_test = accuracy_score(y_test, y_pred_test)
-                f1_train = f1_score(y_train, y_pred_train)
-                f1_test = f1_score(y_test, y_pred_test)
+                f1_train = f1_score(y_train, y_pred_train, average=average)
+                f1_test = f1_score(y_test, y_pred_test, average=average)
                 if metric == "abs":
                     best_hyperparams = gs.best_params_abs_
                 elif metric == "oracle":
