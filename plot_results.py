@@ -83,7 +83,9 @@ model_map = {
 }
 
 # Getting the infos about the datasets
-final_results["n_bags"] = final_results.dataset.apply(lambda x: "large" if "large" in x else "small")
+# TODO: fix this (we have more types now)
+final_results["n_bags"] = final_results.dataset.apply(lambda x: "extra-extra-large" if "extra-extra-large" in x else "extra-large" if "extra-large" in x else "large" if "large" in x else "small" if "small" in x else "massive" if "massive" in x else "not-equal")
+#x = final_results.groupby(["dataset", "n_bags"]).size().reset_index(name='counts').sort_values(by="counts", ascending=False)
 final_results["bag_sizes"] = final_results.dataset.apply(lambda x: "not-equal" if "not-equal" in x else "equal")
 final_results["proportions"] = final_results.dataset.apply(lambda x: "close-global" if "close-global" in x else "far-global" if "far-global" in x else "mixed" if "mixed" in x else "none")
 
@@ -149,6 +151,101 @@ elif args.plot_type == "datasets-info":
     with pd.option_context("max_colwidth", 10000):
         dataset_info.to_latex(buf="tables/table-datasets-info.tex", index=False, escape=False, longtable=True)
 elif args.plot_type == "best-methods":
+    # bag_sizes = {
+    #     "adult": {
+    #         "small": 5,
+    #         "large": 10,
+    #         "extra-large": 20,
+    #         "extra-extra-large": 25,
+    #         "massive": 30
+    #     }
+    # }
+    # Plot mean accuracy of each method per dataset
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rcParams['axes.edgecolor'] = 'black'
+    plt.rc('font', size=6)
+    g = sns.catplot(y="base_dataset", x="accuracy_test", hue="model", col="dataset_variant", data=final_results, kind="bar", col_order=["Hard", "Intermediate", "Simple", "Naive"], legend=False, height=2, aspect=1.5, sharex=True, errorbar="sd", capsize=0.1, col_wrap=2)
+    # Draw a line with the accuracy of the supervised neural network
+    for ax in g.axes.flat:
+        ax.axvline(x=0.8414, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+        ax.axvline(x=0.9279, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+
+    # Say that the line is the accuracy of the supervised neural network in the legend
+    plt.legend(loc="best", borderaxespad=0., fontsize=5)
+    g.set_xlabels("Accuracy")
+    g.set_ylabels("Base Dataset")
+    plt.tight_layout()
+    filename = "plots/avg-performance-per-method-accuracy.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.close()
+
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rcParams['axes.edgecolor'] = 'black'
+    plt.rc('font', size=6)
+    g = sns.catplot(y="n_bags", x="accuracy_test", hue="model", col="base_dataset", data=final_results, kind="bar", legend=False, height=2, aspect=1.5, sharex=True, errorbar="sd", capsize=0.1, col_wrap=2)
+    # Draw a line with the accuracy of the supervised neural network
+    for ax in g.axes.flat:
+        ax.axvline(x=0.8414, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+        ax.axvline(x=0.9279, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+
+    # Say that the line is the accuracy of the supervised neural network in the legend
+    plt.legend(loc="best", borderaxespad=0., fontsize=5)
+    g.set_xlabels("Accuracy")
+    g.set_ylabels("Number of bags")
+    plt.tight_layout()
+    filename = "plots/avg-performance-per-n_bags-accuracy.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.close()
+
+    # f1-score
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rcParams['axes.edgecolor'] = 'black'
+    plt.rc('font', size=6)
+    g = sns.catplot(y="base_dataset", x="f1_test", hue="model", col="dataset_variant", data=final_results, kind="bar", col_order=["Hard", "Intermediate", "Simple", "Naive"], legend=False, height=2, aspect=1.5, sharex=True, errorbar="sd", capsize=0.1, col_wrap=2)
+    # Draw a line with the f-score of the supervised neural network
+    for ax in g.axes.flat:
+        ax.axvline(x=0.6358, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+        ax.axvline(x=0.9403, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+
+    # Say that the line is the accuracy of the supervised neural network in the legend
+    plt.legend(loc="best", borderaxespad=0., fontsize=5)
+    g.set_xlabels(r"$F_1$-score")
+    g.set_ylabels("Base Dataset")
+    plt.tight_layout()
+    filename = "plots/avg-performance-per-method-f1.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rcParams['axes.edgecolor'] = 'black'
+    plt.rc('font', size=6)
+    g = sns.catplot(y="n_bags", x="f1_test", hue="model", col="base_dataset", data=final_results, kind="bar", legend=False, height=2, aspect=1.5, sharex=True, errorbar="sd", capsize=0.1, col_wrap=2)
+    # Draw a line with the f-score of the supervised neural network
+    for ax in g.axes.flat:
+        ax.axvline(x=0.6358, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+        ax.axvline(x=0.9403, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+
+    # Say that the line is the accuracy of the supervised neural network in the legend
+    plt.legend(loc="best", borderaxespad=0., fontsize=5)
+    g.set_xlabels(r"$F_1$-score")
+    g.set_ylabels("Number of bags")
+    plt.tight_layout()
+    filename = "plots/avg-performance-per-n_bags-f1.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    exit()
+
+
     df_best_methods = pd.DataFrame(columns=["base_dataset", "dataset_variant", "n_bags", "bag_sizes", "proportions", "best_hyperparam_method", "best_algorithm", "best_in_both"])
     diff_best_model_bottom = []
     for base_dataset in sorted(final_results.base_dataset.unique()):
