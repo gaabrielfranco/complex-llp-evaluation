@@ -394,9 +394,14 @@ if __name__ == "__main__":
                             validation_size=args.validation_size, central_tendency_metric="mean", 
                             n_jobs=N_JOBS, random_state=seed[execution])
         
-        metrics = ["abs", "oracle", "hypergeo"]
-
+        # Hypergeo is implemented only for binary classification
         n_classes = len(np.unique(y))
+
+        if n_classes == 2:
+            metrics = ["abs", "oracle", "hypergeo"]
+        else:
+            metrics = ["abs", "oracle"]
+        
         average = "binary" if n_classes == 2 else "macro"
 
         if not sys.warnoptions:
