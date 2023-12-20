@@ -3,7 +3,7 @@
 # Set SCC project
 
 # Submit an array job with 720 tasks
-#$ -t 1-60
+#$ -t 1-180
 
 # Specify hard time limit for the job.
 #   The job will be aborted if it runs longer than this time.
@@ -81,7 +81,7 @@ IFS=' ' # space is set as delimiter
 
 for dataset in "cifar-10-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "cifar-10-hard-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "cifar-10-hard-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "cifar-10-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "cifar-10-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "cifar-10-intermediate-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "cifar-10-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40" "cifar-10-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30" "cifar-10-naive-massive-fol-clust-None-cluster-kmeans-autoencoder-50" "cifar-10-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "cifar-10-simple-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "cifar-10-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
 do
-    for model in "dllp"
+    for model in "mixbag" "llp-vat" "llpfc" #"dllp"
     do
         for loss in "abs"
 		do
