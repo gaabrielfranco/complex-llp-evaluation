@@ -153,7 +153,7 @@ IFS=' ' # space is set as delimiter
 
 for dataset in "svhn-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-hard-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-hard-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-intermediate-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40" "svhn-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30" "svhn-naive-massive-fol-clust-None-cluster-kmeans-autoencoder-50" "svhn-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-simple-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
 do
-    for model in "mixbag" "llp-vat" "llpfc" "dllp"
+    for model in "dllp" "mixbag" "llp-vat" "llpfc"
     do
         for loss in "abs"
 		do
