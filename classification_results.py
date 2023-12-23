@@ -58,7 +58,7 @@ F1-score: 0.6199
 """
 
 """
-CIFAR-10
+CIFAR-10-Grey
 
               precision    recall  f1-score   support
 
@@ -70,6 +70,11 @@ CIFAR-10
 weighted avg     0.9279    0.9279    0.9277     15000
 
 F1-score: 0.9403
+"""
+
+"""
+TODO:
+CIFAR-10, SVHN
 """
 
 # Source: https://github.com/lucastassis/dllp/blob/main/net.py
@@ -122,8 +127,9 @@ if __name__ == "__main__":
         print("Execution %d" % execution)
         device = "mps"
         n_epochs = 100
-        dataset = "adult"
+        #dataset = "adult"
         #dataset = "cifar-10-grey-animal-vehicle"
+        dataset = "svhn"
 
         if dataset == "adult":
             # Adult

@@ -43,11 +43,12 @@ for n_bags in [30, 40, 50]:
     elif n_bags == 50:
         n_bags_name = "massive"
 
-    base_dataset = "cifar-10"
-    hard_dataset = f"cifar-10-hard-{n_bags_name}-fol-clust-fol-clust-cluster-kmeans-autoencoder-{n_bags}"
-    intermediate_dataset = f"cifar-10-intermediate-{n_bags_name}-fol-clust-fol-clust-cluster-kmeans-autoencoder-{n_bags}"
-    simple_dataset = f"cifar-10-simple-{n_bags_name}-fol-clust-fol-clust-cluster-kmeans-autoencoder-{n_bags}"
-    naive_dataset = f"cifar-10-naive-{n_bags_name}-fol-clust-None-cluster-kmeans-autoencoder-{n_bags}"
+    #base_dataset = "cifar-10"
+    base_dataset = "svhn"
+    hard_dataset = f"{base_dataset}-hard-{n_bags_name}-fol-clust-fol-clust-cluster-kmeans-autoencoder-{n_bags}"
+    intermediate_dataset = f"{base_dataset}-intermediate-{n_bags_name}-fol-clust-fol-clust-cluster-kmeans-autoencoder-{n_bags}"
+    simple_dataset = f"{base_dataset}-simple-{n_bags_name}-fol-clust-fol-clust-cluster-kmeans-autoencoder-{n_bags}"
+    naive_dataset = f"{base_dataset}-naive-{n_bags_name}-fol-clust-None-cluster-kmeans-autoencoder-{n_bags}"
 
     # Reading X, y (base dataset) and bags (dataset)
     df = pd.read_parquet("datasets-ci/" + base_dataset + ".parquet")
@@ -105,10 +106,10 @@ for n_bags in [30, 40, 50]:
     ax[1, 0].set_xlabel("Bags")
     ax[1, 1].set_xlabel("Bags")
 
-    plt.suptitle(f"CIFAR-10 with {n_bags} bags")
+    plt.suptitle(f"{base_dataset} with {n_bags} bags")
 
     plt.tight_layout()
-    plt.savefig(f"cifar-10-proportions-{n_bags}.png", dpi=800)
+    plt.savefig(f"{base_dataset}-proportions-{n_bags}.png", dpi=800)
     plt.close()
 
 

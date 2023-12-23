@@ -277,7 +277,7 @@ if __name__ == "__main__":
         else:
             n_channels = 3
 
-        if "cifar" in args.dataset and args.model in NN_BASED_METHODS:
+        if ("cifar" in args.dataset or "svhn" in args.dataset) and args.model in NN_BASED_METHODS:
             X = X.reshape(X.shape[0], n_channels, 32, 32)
             X = X.transpose(0, 2, 3, 1)
 

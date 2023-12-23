@@ -3,3 +3,4 @@ svhn.parquet filter=lfs diff=lfs merge=lfs -text
 base-datasets/svhn.parquet filter=lfs diff=lfs merge=lfs -text
 base-datasets/cifar-10.parquet filter=lfs diff=lfs merge=lfs -text
 datasets-ci/cifar-10.parquet filter=lfs diff=lfs merge=lfs -text
+datasets-ci/svhn.parquet filter=lfs diff=lfs merge=lfs -text

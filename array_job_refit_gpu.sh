@@ -3,7 +3,7 @@
 # Set SCC project
 
 # Submit an array job with 720 tasks
-#$ -t 1-2
+#$ -t 1-240
 
 # Specify hard time limit for the job.
 #   The job will be aborted if it runs longer than this time.
@@ -103,33 +103,57 @@ IFS=' ' # space is set as delimiter
 #     done
 # done
 
-for dataset in "cifar-10-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
-do
-    for model in "llp-vat"
-    do
-        for loss in "abs"
-		do
-            for n_split in "5"
-            do
-                for splitter in "split-bag-shuffle"
-                do
-                    for validation_size_perc in "0.5"
-                    do
-                        for exec in "4"
-                        do
-                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
-                            ((idx++))
-                        done
-                    done
-                done
-            done
-		done
-    done
-done
+# for dataset in "cifar-10-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
+# do
+#     for model in "llp-vat"
+#     do
+#         for loss in "abs"
+# 		do
+#             for n_split in "5"
+#             do
+#                 for splitter in "split-bag-shuffle"
+#                 do
+#                     for validation_size_perc in "0.5"
+#                     do
+#                         for exec in "4"
+#                         do
+#                             params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+#                             ((idx++))
+#                         done
+#                     done
+#                 done
+#             done
+# 		done
+#     done
+# done
 
-for dataset in "cifar-10-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
+# for dataset in "cifar-10-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
+# do
+#     for model in "llpfc"
+#     do
+#         for loss in "abs"
+# 		do
+#             for n_split in "5"
+#             do
+#                 for splitter in "split-bag-shuffle"
+#                 do
+#                     for validation_size_perc in "0.5"
+#                     do
+#                         for exec in "0"
+#                         do
+#                             params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+#                             ((idx++))
+#                         done
+#                     done
+#                 done
+#             done
+# 		done
+#     done
+# done
+
+for dataset in "svhn-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-hard-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-hard-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-intermediate-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40" "svhn-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30" "svhn-naive-massive-fol-clust-None-cluster-kmeans-autoencoder-50" "svhn-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-simple-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
 do
-    for model in "llpfc"
+    for model in "mixbag" "llp-vat" "llpfc" "dllp"
     do
         for loss in "abs"
 		do
@@ -139,7 +163,7 @@ do
                 do
                     for validation_size_perc in "0.5"
                     do
-                        for exec in "0"
+                        for ((exec=0; exec<5; exec++))
                         do
                             params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
                             ((idx++))
