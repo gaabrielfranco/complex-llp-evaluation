@@ -3,12 +3,12 @@
 # Set SCC project
 
 # Submit an array job with 720 tasks
-#$ -t 1-240
+#$ -t 1-16
 
 # Specify hard time limit for the job.
 #   The job will be aborted if it runs longer than this time.
 #   The default time is 12 hours
-#$ -l h_rt=12:00:00
+#$ -l h_rt=18:00:00
 
 # Give job a name
 #$ -N llp-benchmark
@@ -151,9 +151,33 @@ IFS=' ' # space is set as delimiter
 #     done
 # done
 
-for dataset in "svhn-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-hard-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-hard-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-intermediate-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40" "svhn-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30" "svhn-naive-massive-fol-clust-None-cluster-kmeans-autoencoder-50" "svhn-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-simple-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
+# for dataset in "svhn-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-hard-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-hard-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-intermediate-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40" "svhn-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30" "svhn-naive-massive-fol-clust-None-cluster-kmeans-autoencoder-50" "svhn-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-simple-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
+# do
+#     for model in "dllp" "mixbag" "llp-vat" "llpfc"
+#     do
+#         for loss in "abs"
+# 		do
+#             for n_split in "5"
+#             do
+#                 for splitter in "split-bag-shuffle"
+#                 do
+#                     for validation_size_perc in "0.5"
+#                     do
+#                         for ((exec=0; exec<5; exec++))
+#                         do
+#                             params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+#                             ((idx++))
+#                         done
+#                     done
+#                 done
+#             done
+# 		done
+#     done
+# done
+
+for dataset in "svhn-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40"
 do
-    for model in "dllp" "mixbag" "llp-vat" "llpfc"
+    for model in "llp-vat"
     do
         for loss in "abs"
 		do
@@ -163,7 +187,271 @@ do
                 do
                     for validation_size_perc in "0.5"
                     do
-                        for ((exec=0; exec<5; exec++))
+                        for exec in "4"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-hard-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30"
+do
+    for model in "llp-vat"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "3"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40"
+do
+    for model in "llpfc"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "0"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30"
+do
+    for model in "mixbag"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "4"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30"
+do
+    for model in "llp-vat"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "0"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40"
+do
+    for model in "llp-vat"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "1" "3" "4"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30"
+do
+    for model in "mixbag"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "3"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30"
+do
+    for model in "llp-vat"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "0"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-naive-massive-fol-clust-None-cluster-kmeans-autoencoder-50"
+do
+    for model in "mixbag"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "3"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40"
+do
+    for model in "mixbag"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "1" "2" "4"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40"
+do
+    for model in "llp-vat"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "2"
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+for dataset in "svhn-simple-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30"
+do
+    for model in "mixbag"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for exec in "1"
                         do
                             params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
                             ((idx++))
