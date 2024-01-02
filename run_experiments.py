@@ -153,7 +153,7 @@ def load_dataset(args, execution):
 
 if __name__ == "__main__":
     # Constants
-    n_executions = 5 # Number of executions
+    n_executions = 10 # Number of executions
 
     try:
         N_JOBS = eval(os.getenv('NSLOTS'))
@@ -221,7 +221,7 @@ if __name__ == "__main__":
                         help="the validation size that will be used in the experiment")
     parser.add_argument("--splitter", "-s", choices=["full-bag-stratified-k-fold", "split-bag-bootstrap", "split-bag-shuffle", "split-bag-k-fold"],
                         help="the splitter that will be used in the experiment")
-    parser.add_argument("--execution", "-e", choices=[-1] + [x for x in range(n_executions)], type=int, required=True,
+    parser.add_argument("--execution", "-e", choices=[-2, -1] + [x for x in range(n_executions)], type=int, required=True,
                         help="the execution of the experiment")
     args = parser.parse_args()
 
@@ -235,6 +235,8 @@ if __name__ == "__main__":
 
     if args.execution == -1:
         executions = range(n_executions)
+    elif args.execution == -2: # TODO: remove this
+        executions = range(5, n_executions)
     else:
         executions = [args.execution]
 

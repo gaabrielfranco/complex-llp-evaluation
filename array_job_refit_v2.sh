@@ -35,7 +35,7 @@ do
                 do
                     for validation_size_perc in "0.5"
                     do
-                        for exec in "-1"
+                        for exec in "-2"
                         do
                             params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
                             ((idx++))
@@ -59,7 +59,8 @@ do
                 do
                     for validation_size_perc in "0.5"
                     do
-                        for ((exec=0;exec<5;exec++))
+                        #for ((exec=0;exec<5;exec++))
+                        for ((exec=5;exec<10;exec++))
                         do
                             params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
                             ((idx++))
