@@ -24,6 +24,7 @@ def get_dataset_variant(dataset):
 # Arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('--plot_type', "-p", type=str, required=True, help="Plot to generate")
+parser.add_argument('--n_classes', "-n", choices=["binary", "multiclass"], type=str, required=True, help="Number of classes")
 args = parser.parse_args()
 
 VARIANTS = ["naive", "simple", "intermediate", "hard"]
@@ -83,20 +84,12 @@ model_map = {
 }
 
 # Getting the infos about the datasets
-# TODO: fix this (we have more types now)
-final_results["n_bags"] = final_results.dataset.apply(lambda x: "extra-extra-large" if "extra-extra-large" in x else "extra-large" if "extra-large" in x else "large" if "large" in x else "small" if "small" in x else "massive" if "massive" in x else "not-equal" if "not-equal" in x else "none")
-#x = final_results.groupby(["dataset", "n_bags"]).size().reset_index(name='counts').sort_values(by="counts", ascending=False)
+final_results["n_bags"] = final_results.dataset.apply(lambda x: "extra-extra-large" if "extra-extra-large" in x else "extra-large" if "extra-large" in x else "large" if "large" in x else "small" if "small" in x else "massive" if "massive" in x else "none")
 final_results["bag_sizes"] = final_results.dataset.apply(lambda x: "not-equal" if "not-equal" in x else "equal" if "equal" in x else "fol-clust" if "fol-clust" in x else "none")
 final_results["proportions"] = final_results.dataset.apply(lambda x: "close-global" if "close-global" in x else "far-global" if "far-global" in x else "mixed" if "mixed" in x else "fol-clust" if "fol-clust" in x else "none")
 
-# print(final_results.n_bags.unique())
-# print(final_results.bag_sizes.unique())
-# print(final_results.proportions.unique())
-# print()
-# print(final_results[final_results.proportions == "none"].dataset.unique())
-# exit()
-
 final_results["model"].replace(model_map, inplace=True)
+
 # Creating a column with the dataset variant
 final_results["dataset_variant"] = final_results["dataset"].apply(get_dataset_variant)
 
@@ -112,14 +105,22 @@ final_results["dataset_type"] = "None"
 for base_dataset in base_datasets_type:
     final_results.loc[final_results.base_dataset.str.contains(base_dataset), "dataset_type"] = base_datasets_type[base_dataset]
 
-# Removing multiclass for now (TODO: fix this)
-final_results = final_results[((final_results.base_dataset != "cifar-10") & (final_results.base_dataset != "svhn"))]
+if args.n_classes == "binary":
+    final_results = final_results[((final_results.base_dataset != "cifar-10") & (final_results.base_dataset != "svhn"))]
+else:
+    final_results = final_results[((final_results.base_dataset == "cifar-10") | (final_results.base_dataset == "svhn"))]
 
 # Removing execs from 5 to 10 (TODO: fix this)
 final_results["exec"] = final_results["exec"].astype(int)
 final_results = final_results[(final_results.exec < 5)]
 
-# We have a total of 72 datasets (80 - 8 that are not close-global for the intermediate variant of CIFAR-10)
+# Getting all models
+all_models = final_results["model"].unique()
+
+# We have a total of 96 datasets for binary classification
+# We have a total of 8 algoritms for binary classification
+# We have a total of 5 execs for binary classification (we will increase it to 10)
+# Total = 96 * 8 * 5 = 3840
 if args.plot_type == "check-n-experiments":
     total_models = len(final_results)
     print("Total trained models: ", total_models)
@@ -176,17 +177,17 @@ elif args.plot_type == "best-methods":
     plt.rcParams['axes.edgecolor'] = 'black'
     plt.rc('font', size=6)
     g = sns.catplot(y="base_dataset", x="accuracy_test", hue="model", col="dataset_variant", data=final_results, kind="bar", col_order=["Hard", "Intermediate", "Simple", "Naive"], legend=False, height=2, aspect=1.5, sharex=True, errorbar="sd", capsize=0.1, col_wrap=2)
-    # # Draw a line with the accuracy of the supervised neural network
-    # for ax in g.axes.flat:
-    #     ax.axvline(x=0.8414, ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
-    #     ax.axvline(x=0.9279, ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+    # Draw a line with the accuracy of the supervised neural network
+    for ax in g.axes.flat:
+        ax.axvline(x=0.8414, ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+        ax.axvline(x=0.9279, ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
 
     # Say that the line is the accuracy of the supervised neural network in the legend
     plt.legend(loc="best", borderaxespad=0., fontsize=5)
     g.set_xlabels("Accuracy")
     g.set_ylabels("Base Dataset")
     plt.tight_layout()
-    filename = "plots/avg-performance-per-method-accuracy.pdf"
+    filename = f"plots/{args.n_classes}-avg-performance-per-method-accuracy.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
@@ -197,19 +198,19 @@ elif args.plot_type == "best-methods":
     plt.rcParams['axes.edgecolor'] = 'black'
     plt.rc('font', size=6)
     g = sns.catplot(y="n_bags", x="accuracy_test", hue="model", col="base_dataset", data=final_results, kind="bar", legend=False, height=2, aspect=1.5, sharex=True, errorbar="sd", capsize=0.1, col_wrap=2)
-    # # Draw a line with the accuracy of the supervised neural network
-    # for i, ax in enumerate(g.axes.flat):
-    #     if i == 0:
-    #         ax.axvline(x=0.8414, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
-    #     else:
-    #         ax.axvline(x=0.9279, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+    # Draw a line with the accuracy of the supervised neural network
+    for i, ax in enumerate(g.axes.flat):
+        if i == 0:
+            ax.axvline(x=0.8414, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+        else:
+            ax.axvline(x=0.9279, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
 
     # Say that the line is the accuracy of the supervised neural network in the legend
     plt.legend(loc="best", borderaxespad=0., fontsize=5)
     g.set_xlabels("Accuracy")
     g.set_ylabels("Number of bags")
     plt.tight_layout()
-    filename = "plots/avg-performance-per-n_bags-accuracy.pdf"
+    filename = f"plots/{args.n_classes}-avg-performance-per-n_bags-accuracy.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
@@ -221,17 +222,17 @@ elif args.plot_type == "best-methods":
     plt.rcParams['axes.edgecolor'] = 'black'
     plt.rc('font', size=6)
     g = sns.catplot(y="base_dataset", x="f1_test", hue="model", col="dataset_variant", data=final_results, kind="bar", col_order=["Hard", "Intermediate", "Simple", "Naive"], legend=False, height=2, aspect=1.5, sharex=True, errorbar="sd", capsize=0.1, col_wrap=2)
-    # # Draw a line with the f-score of the supervised neural network
-    # for ax in g.axes.flat:
-    #     ax.axvline(x=0.6358, ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
-    #     ax.axvline(x=0.9403, ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+    # Draw a line with the f-score of the supervised neural network
+    for ax in g.axes.flat:
+        ax.axvline(x=0.6358, ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+        ax.axvline(x=0.9403, ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
 
     # Say that the line is the accuracy of the supervised neural network in the legend
     plt.legend(loc="best", borderaxespad=0., fontsize=5)
     g.set_xlabels(r"$F_1$-score")
     g.set_ylabels("Base Dataset")
     plt.tight_layout()
-    filename = "plots/avg-performance-per-method-f1.pdf"
+    filename = f"plots/{args.n_classes}-avg-performance-per-method-f1.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
@@ -242,19 +243,19 @@ elif args.plot_type == "best-methods":
     plt.rcParams['axes.edgecolor'] = 'black'
     plt.rc('font', size=6)
     g = sns.catplot(y="n_bags", x="f1_test", hue="model", col="base_dataset", data=final_results, kind="bar", legend=False, height=2, aspect=1.5, sharex=True, errorbar="sd", capsize=0.1, col_wrap=2)
-    # # Draw a line with the f-score of the supervised neural network
-    # for i, ax in enumerate(g.axes.flat):
-    #     if i == 0:
-    #         ax.axvline(x=0.6358, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
-    #     else:
-    #         ax.axvline(x=0.9403, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+    # Draw a line with the f-score of the supervised neural network
+    for i, ax in enumerate(g.axes.flat):
+        if i == 0:
+            ax.axvline(x=0.6358, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+        else:
+            ax.axvline(x=0.9403, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
 
     # Say that the line is the accuracy of the supervised neural network in the legend
     plt.legend(loc="best", borderaxespad=0., fontsize=5)
     g.set_xlabels(r"$F_1$-score")
     g.set_ylabels("Number of bags")
     plt.tight_layout()
-    filename = "plots/avg-performance-per-n_bags-f1.pdf"
+    filename = f"plots/{args.n_classes}-avg-performance-per-n_bags-f1.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
@@ -408,19 +409,37 @@ elif args.plot_type == "best-methods":
         matrix_jaccard = np.zeros((4, 4), dtype=np.float32)
         for i, dataset_variant_1 in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
             for j, dataset_variant_2 in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
-                x1 = eval(x[(x.dataset_variant == dataset_variant_1)].best_algorithm.values[0])
-                x2 = eval(x[(x.dataset_variant == dataset_variant_2)].best_algorithm.values[0])
+                x1 = x[(x.dataset_variant == dataset_variant_1)].best_algorithm.values
+                x2 = x[(x.dataset_variant == dataset_variant_2)].best_algorithm.values
 
-                # Computing the Jaccard Index (multiset version)
-                matrix_jaccard[i, j] = np.intersect1d(x1, x2).shape[0] / (len(x1) + len(x2))
+                multiset_x1 = []
+                for ba in x1:
+                    for elem in eval(ba):
+                        multiset_x1.append(elem)
+                
+                multiset_x2 = []
+                for ba in x2:
+                    for elem in eval(ba):
+                        multiset_x2.append(elem)
+                
+                num = 0
+                den = 0
+                for alg in all_models:
+                    count_alg_x1 = multiset_x1.count(alg)
+                    count_alg_x2 = multiset_x2.count(alg)
+                    num += min(count_alg_x1, count_alg_x2)
+                    den += max(count_alg_x1, count_alg_x2)
 
+                # Computing the Generalized Jaccard Index
+                matrix_jaccard[i, j] = num / den
+        
         # Plotting the heatmap
-        sns.heatmap(matrix_jaccard, annot=True, cmap="YlGnBu", xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], ax=ax[idx], vmin=0, vmax=0.5, annot_kws={"size": 5})
+        sns.heatmap(matrix_jaccard, annot=True, cmap="YlGnBu", xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], ax=ax[idx], vmin=0, vmax=1, annot_kws={"size": 5})
         ax[idx].set_xlabel("Dataset Variant")
         ax[idx].set_ylabel("Dataset Variant")
         ax[idx].set_title(base_dataset)
     plt.tight_layout()
-    filename = "plots/jaccard-index-heatmap-best-algorithm.pdf"
+    filename = f"plots/{args.n_classes}-jaccard-index-heatmap-best-algorithm.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
@@ -444,7 +463,7 @@ elif args.plot_type == "best-methods":
     g.set_titles("{row_name}\n{col_name}")
     g.set_xlabels("")
     plt.tight_layout()
-    filename = "plots/best-hyperparam-methods-per-base-dataset-and-dataset-variant.pdf"
+    filename = f"plots/{args.n_classes}-best-hyperparam-methods-per-base-dataset-and-dataset-variant.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
@@ -476,7 +495,7 @@ elif args.plot_type == "best-methods":
         ax.set_xticks([])
     plt.legend(bbox_to_anchor=(1.1, 1.8), loc=2, borderaxespad=0., fontsize=5)
     plt.tight_layout()
-    filename = "plots/best-algorithms-per-base-dataset-and-dataset-variant.pdf"
+    filename = f"plots/{args.n_classes}-best-algorithms-per-base-dataset-and-dataset-variant.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
@@ -493,7 +512,7 @@ elif args.plot_type == "best-methods":
     plt.xlabel("Difference in " + r"$F_1$" + "-score")
     plt.ylabel("Count")
     plt.tight_layout()
-    filename = "plots/effect-sizes-dist.pdf"
+    filename = f"plots/{args.n_classes}-effect-sizes-dist.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
@@ -530,7 +549,7 @@ elif args.plot_type == "best-methods":
     plt.xlabel("Proportion")
     plt.ylabel("Best Algorithm")
     plt.tight_layout()
-    filename = "plots/best-algorithms-count.pdf"
+    filename = f"plots/{args.n_classes}-best-algorithms-count.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
@@ -577,7 +596,7 @@ elif args.plot_type == "best-methods":
     plt.xlabel("Proportion")
     plt.ylabel("Base Dataset")
     plt.tight_layout()
-    filename = "plots/best-algorithms-count-per-base-dataset.pdf"
+    filename = f"plots/{args.n_classes}-best-algorithms-count-per-base-dataset.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
@@ -630,7 +649,7 @@ elif args.plot_type == "best-methods":
     plt.xlabel("Proportion")
     plt.ylabel("Base Dataset")
     plt.tight_layout()
-    filename = "plots/best-algorithms-count-per-base-dataset-and-dataset-variant.pdf"
+    filename = f"plots/{args.n_classes}-best-algorithms-count-per-base-dataset-and-dataset-variant.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
 
