@@ -41,7 +41,7 @@ do
                 do
                     for validation_size_perc in "0.5"
                     do
-                        for exec in "-2"
+                        for exec in "-1"
                         do
                             params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
                             ((idx++))
@@ -79,79 +79,79 @@ do
 done
 
 # # CIFAR-10 multiclass
-# for dataset in "cifar-10-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "cifar-10-hard-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "cifar-10-hard-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "cifar-10-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "cifar-10-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "cifar-10-intermediate-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "cifar-10-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40" "cifar-10-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30" "cifar-10-naive-massive-fol-clust-None-cluster-kmeans-autoencoder-50" "cifar-10-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "cifar-10-simple-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "cifar-10-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
-# do
-#     for model in "mixbag" "llp-vat" "llpfc" "dllp"
-#     do
-#         for loss in "abs"
-# 		do
-#             for n_split in "5"
-#             do
-#                 for splitter in "split-bag-shuffle"
-#                 do
-#                     for validation_size_perc in "0.5"
-#                     do
-#                         for ((exec=5; exec<10; exec++))
-#                         do
-#                             params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
-#                             ((idx++))
-#                         done
-#                     done
-#                 done
-#             done
-# 		done
-#     done
-# done
-
-# # SVHN multiclass
-# for dataset in "svhn-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-hard-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-hard-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-intermediate-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40" "svhn-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30" "svhn-naive-massive-fol-clust-None-cluster-kmeans-autoencoder-50" "svhn-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-simple-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
-# do
-#     for model in "dllp" "mixbag" "llp-vat" "llpfc"
-#     do
-#         for loss in "abs"
-# 		do
-#             for n_split in "5"
-#             do
-#                 for splitter in "split-bag-shuffle"
-#                 do
-#                     for validation_size_perc in "0.5"
-#                     do
-#                         for ((exec=5; exec<10; exec++))
-#                         do
-#                             params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
-#                             ((idx++))
-#                         done
-#                     done
-#                 done
-#             done
-# 		done
-#     done
-# done
-
-# index=$(($SGE_TASK_ID-1))
-# read -ra taskinput <<< "${params[$index]}" # str is read into an array as tokens separated by IFS
-
-# cd /usr3/graduate/gvfranco/
-# source .bashrc
-# cd /usr3/graduate/gvfranco/kdd24-llp-benchmark/
-# module load R/4.1.2
-# module load python3/3.8.16
-# source /project/mcnet/venv3.8/bin/activate
-# module load rpy2/3.5.7
-# module load pytorch/1.13.1
-# #fix_rpy2.sh
-# export LD_LIBRARY_PATH=$R_HOME/lib:$LD_LIBRARY_PATH
-
-# if [ ${#taskinput[@]} -eq 7 ]
-# then
-#     python3 run_experiments.py -d ${taskinput[0]} -m ${taskinput[1]} -l ${taskinput[2]} -s ${taskinput[3]} -n ${taskinput[4]} -v ${taskinput[5]} -e ${taskinput[6]}
-# elif [ ${#taskinput[@]} -eq 6 ]
-# then
-#     python3 run_experiments.py -d ${taskinput[0]} -m ${taskinput[1]} -l ${taskinput[2]} -s ${taskinput[3]} -n ${taskinput[4]} -e ${taskinput[5]}
-# fi
-
-index=1
-for i in "${params[@]}"; do # access each element of array
-   echo "$index: $i"
-   index=$((index+1))
+for dataset in "cifar-10-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "cifar-10-hard-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "cifar-10-hard-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "cifar-10-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "cifar-10-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "cifar-10-intermediate-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "cifar-10-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40" "cifar-10-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30" "cifar-10-naive-massive-fol-clust-None-cluster-kmeans-autoencoder-50" "cifar-10-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "cifar-10-simple-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "cifar-10-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
+do
+    for model in "mixbag" "llp-vat" "llpfc" "dllp"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for ((exec=0; exec<10; exec++))
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
 done
+
+# SVHN multiclass
+for dataset in "svhn-hard-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-hard-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-hard-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-intermediate-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-intermediate-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-intermediate-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50" "svhn-naive-extra-extra-large-fol-clust-None-cluster-kmeans-autoencoder-40" "svhn-naive-extra-large-fol-clust-None-cluster-kmeans-autoencoder-30" "svhn-naive-massive-fol-clust-None-cluster-kmeans-autoencoder-50" "svhn-simple-extra-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-40" "svhn-simple-extra-large-fol-clust-fol-clust-cluster-kmeans-autoencoder-30" "svhn-simple-massive-fol-clust-fol-clust-cluster-kmeans-autoencoder-50"
+do
+    for model in "dllp" "mixbag" "llp-vat" "llpfc"
+    do
+        for loss in "abs"
+		do
+            for n_split in "5"
+            do
+                for splitter in "split-bag-shuffle"
+                do
+                    for validation_size_perc in "0.5"
+                    do
+                        for ((exec=0; exec<10; exec++))
+                        do
+                            params[idx]=$dataset$IFS$model$IFS$loss$IFS$splitter$IFS$n_split$IFS$validation_size_perc$IFS$exec
+                            ((idx++))
+                        done
+                    done
+                done
+            done
+		done
+    done
+done
+
+index=$(($SGE_TASK_ID-1))
+read -ra taskinput <<< "${params[$index]}" # str is read into an array as tokens separated by IFS
+
+cd /usr3/graduate/gvfranco/
+source .bashrc
+cd /usr3/graduate/gvfranco/kdd24-llp-benchmark/
+module load R/4.1.2
+module load python3/3.8.16
+source /project/mcnet/venv3.8/bin/activate
+module load rpy2/3.5.7
+module load pytorch/1.13.1
+#fix_rpy2.sh
+export LD_LIBRARY_PATH=$R_HOME/lib:$LD_LIBRARY_PATH
+
+if [ ${#taskinput[@]} -eq 7 ]
+then
+    python3 run_experiments.py -d ${taskinput[0]} -m ${taskinput[1]} -l ${taskinput[2]} -s ${taskinput[3]} -n ${taskinput[4]} -v ${taskinput[5]} -e ${taskinput[6]}
+elif [ ${#taskinput[@]} -eq 6 ]
+then
+    python3 run_experiments.py -d ${taskinput[0]} -m ${taskinput[1]} -l ${taskinput[2]} -s ${taskinput[3]} -n ${taskinput[4]} -e ${taskinput[5]}
+fi
+
+# index=1
+# for i in "${params[@]}"; do # access each element of array
+#    echo "$index: $i"
+#    index=$((index+1))
+# done

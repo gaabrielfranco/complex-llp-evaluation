@@ -66,6 +66,20 @@ final_results["error_metric"].replace(error_metric_map, inplace=True)
 
 base_datasets = ["cifar-10", "adult", "cifar-10-grey", "svhn"]
 
+base_datasets_supervised_accuracy = {
+    "cifar-10": 0.5105,
+    "adult": 0.8414,
+    "cifar-10-grey": 0.9279,
+    "svhn": 0.9369,
+}
+
+base_datasets_supervised_f1_score = {
+    "cifar-10": 0.5116,
+    "adult": 0.6358,
+    "cifar-10-grey": 0.9403,
+    "svhn": 0.9325,
+}
+
 base_datasets_type = {
     "cifar-10-grey": "Image-Objects",
     "adult": "Tabular"
@@ -110,9 +124,9 @@ if args.n_classes == "binary":
 else:
     final_results = final_results[((final_results.base_dataset == "cifar-10") | (final_results.base_dataset == "svhn"))]
 
-# Removing execs from 5 to 10 (TODO: fix this)
-final_results["exec"] = final_results["exec"].astype(int)
-final_results = final_results[(final_results.exec < 5)]
+# # Removing execs from 5 to 10 (TODO: fix this)
+# final_results["exec"] = final_results["exec"].astype(int)
+# final_results = final_results[(final_results.exec < 5)]
 
 # Getting all models
 all_models = final_results["model"].unique()
@@ -179,8 +193,12 @@ elif args.plot_type == "best-methods":
     g = sns.catplot(y="base_dataset", x="accuracy_test", hue="model", col="dataset_variant", data=final_results, kind="bar", col_order=["Hard", "Intermediate", "Simple", "Naive"], legend=False, height=2, aspect=1.5, sharex=True, errorbar="sd", capsize=0.1, col_wrap=2)
     # Draw a line with the accuracy of the supervised neural network
     for ax in g.axes.flat:
-        ax.axvline(x=0.8414, ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
-        ax.axvline(x=0.9279, ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+        if args.n_classes == "binary":
+            ax.axvline(x=base_datasets_supervised_accuracy["adult"], ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+            ax.axvline(x=base_datasets_supervised_accuracy["cifar-10-grey"], ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10-Grey performance
+        else:
+            ax.axvline(x=base_datasets_supervised_accuracy["cifar-10"], ymin=0.5, ymax=1, color="black", linestyle="--", label="CIFAR-10 supervised NN") # CIFAR-10 performance
+            ax.axvline(x=base_datasets_supervised_accuracy["svhn"], ymin=0, ymax=0.5, color="red", linestyle="--", label="SVHN supervised NN") # SVHN performance
 
     # Say that the line is the accuracy of the supervised neural network in the legend
     plt.legend(loc="best", borderaxespad=0., fontsize=5)
@@ -201,9 +219,16 @@ elif args.plot_type == "best-methods":
     # Draw a line with the accuracy of the supervised neural network
     for i, ax in enumerate(g.axes.flat):
         if i == 0:
-            ax.axvline(x=0.8414, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+            if args.n_classes == "binary":
+                ax.axvline(x=base_datasets_supervised_accuracy["adult"], color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+            else:
+                ax.axvline(x=base_datasets_supervised_accuracy["cifar-10"], color="black", linestyle="--", label="CIFAR-10 supervised NN") # CIFAR-10 performance
         else:
-            ax.axvline(x=0.9279, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+            if args.n_classes == "binary":
+                ax.axvline(x=base_datasets_supervised_accuracy["cifar-10-grey"], color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10-Grey performance
+            else:
+                ax.axvline(x=base_datasets_supervised_accuracy["svhn"], color="red", linestyle="--", label="SVHN supervised NN") # SVHN performance
+            
 
     # Say that the line is the accuracy of the supervised neural network in the legend
     plt.legend(loc="best", borderaxespad=0., fontsize=5)
@@ -224,8 +249,12 @@ elif args.plot_type == "best-methods":
     g = sns.catplot(y="base_dataset", x="f1_test", hue="model", col="dataset_variant", data=final_results, kind="bar", col_order=["Hard", "Intermediate", "Simple", "Naive"], legend=False, height=2, aspect=1.5, sharex=True, errorbar="sd", capsize=0.1, col_wrap=2)
     # Draw a line with the f-score of the supervised neural network
     for ax in g.axes.flat:
-        ax.axvline(x=0.6358, ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
-        ax.axvline(x=0.9403, ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+        if args.n_classes == "binary":
+            ax.axvline(x=base_datasets_supervised_f1_score["adult"], ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+            ax.axvline(x=base_datasets_supervised_f1_score["cifar-10-grey"], ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10-Grey performance
+        else:
+            ax.axvline(x=base_datasets_supervised_f1_score["cifar-10"], ymin=0.5, ymax=1, color="black", linestyle="--", label="CIFAR-10 supervised NN") # CIFAR-10 performance
+            ax.axvline(x=base_datasets_supervised_f1_score["svhn"], ymin=0, ymax=0.5, color="red", linestyle="--", label="SVHN supervised NN") # SVHN performance
 
     # Say that the line is the accuracy of the supervised neural network in the legend
     plt.legend(loc="best", borderaxespad=0., fontsize=5)
@@ -246,9 +275,15 @@ elif args.plot_type == "best-methods":
     # Draw a line with the f-score of the supervised neural network
     for i, ax in enumerate(g.axes.flat):
         if i == 0:
-            ax.axvline(x=0.6358, color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+            if args.n_classes == "binary":
+                ax.axvline(x=base_datasets_supervised_f1_score["adult"], color="black", linestyle="--", label="Adult supervised NN") # Adult performance
+            else:
+                ax.axvline(x=base_datasets_supervised_f1_score["cifar-10"], color="black", linestyle="--", label="CIFAR-10 supervised NN") # CIFAR-10 performance
         else:
-            ax.axvline(x=0.9403, color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10 performance
+            if args.n_classes == "binary":
+                ax.axvline(x=base_datasets_supervised_f1_score["cifar-10-grey"], color="red", linestyle="--", label="CIFAR-10-Grey supervised NN") # CIFAR-10-Grey performance
+            else:
+                ax.axvline(x=base_datasets_supervised_f1_score["svhn"], color="red", linestyle="--", label="SVHN supervised NN") # SVHN performance
 
     # Say that the line is the accuracy of the supervised neural network in the legend
     plt.legend(loc="best", borderaxespad=0., fontsize=5)

@@ -8,7 +8,8 @@ from tqdm import tqdm
 from torchvision.models import resnet18
 
 """
-1000 hidden nodes
+Adult
+1000 hidden nodes, 0.5 dropout
               precision    recall  f1-score   support
 
            0     0.8781    0.9200    0.8986      9329
@@ -19,45 +20,7 @@ from torchvision.models import resnet18
 weighted avg     0.8347    0.8414    0.8366     12211
 
 F1-score: 0.6358
-
-100 hidden nodes
-              precision    recall  f1-score   support
-
-           0     0.8858    0.9258    0.9054      9329
-           1     0.7188    0.6138    0.6622      2882
-
-    accuracy                         0.8522     12211
-   macro avg     0.8023    0.7698    0.7838     12211
-weighted avg     0.8464    0.8522    0.8480     12211
-
-F1-score: 0.6622
-
-100, 100 hidden nodes
-              precision    recall  f1-score   support
-
-           0     0.8742    0.9435    0.9075      9329
-           1     0.7540    0.5604    0.6429      2882
-
-    accuracy                         0.8531     12211
-   macro avg     0.8141    0.7519    0.7752     12211
-weighted avg     0.8458    0.8531    0.8451     12211
-
-F1-score: 0.6429
-
-1000, 1000 hidden nodes
-              precision    recall  f1-score   support
-
-           0     0.8723    0.9216    0.8963      9329
-           1     0.6895    0.5632    0.6199      2882
-
-    accuracy                         0.8370     12211
-   macro avg     0.7809    0.7424    0.7581     12211
-weighted avg     0.8291    0.8370    0.8311     12211
-
-F1-score: 0.6199
-"""
-
-"""
+-----------------------------------------------------
 CIFAR-10-Grey
 
               precision    recall  f1-score   support
@@ -70,11 +33,42 @@ CIFAR-10-Grey
 weighted avg     0.9279    0.9279    0.9277     15000
 
 F1-score: 0.9403
-"""
+-----------------------------------------------------
+SVHN
+              precision    recall  f1-score   support
 
-"""
-TODO:
-CIFAR-10, SVHN
+           0     0.9175    0.9236    0.9205      1662
+           1     0.9517    0.9517    0.9517      4780
+           2     0.9515    0.9604    0.9559      3657
+           3     0.9314    0.9218    0.9266      2826
+           4     0.9458    0.9533    0.9496      2508
+           5     0.9262    0.9246    0.9254      2295
+           6     0.9263    0.9190    0.9226      1927
+           7     0.9377    0.9462    0.9420      1878
+           8     0.9183    0.8994    0.9088      1700
+           9     0.9214    0.9220    0.9217      1590
+
+    accuracy                         0.9369     24823
+   macro avg     0.9328    0.9322    0.9325     24823
+weighted avg     0.9369    0.9369    0.9369     24823
+-----------------------------------------------------
+CIFAR-10
+              precision    recall  f1-score   support
+
+           0     0.6317    0.5066    0.5622      1520
+           1     0.6395    0.6071    0.6229      1540
+           2     0.4204    0.3347    0.3727      1443
+           3     0.3192    0.3699    0.3427      1468
+           4     0.4176    0.5109    0.4595      1517
+           5     0.3882    0.4049    0.3964      1556
+           6     0.6524    0.4903    0.5598      1493
+           7     0.5177    0.6247    0.5662      1455
+           8     0.6920    0.6135    0.6503      1516
+           9     0.5379    0.6374    0.5834      1492
+
+    accuracy                         0.5105     15000
+   macro avg     0.5216    0.5100    0.5116     15000
+weighted avg     0.5224    0.5105    0.5123     15000
 """
 
 # Source: https://github.com/lucastassis/dllp/blob/main/net.py
@@ -123,13 +117,15 @@ if __name__ == "__main__":
             411932339, 1446558659, 1448895932,  952198910, 3882231031]
     
     f1_scores = []
-    for execution in range(5):
+    for execution in range(1):
         print("Execution %d" % execution)
-        device = "mps"
+        device = "cuda"
         n_epochs = 100
         #dataset = "adult"
         #dataset = "cifar-10-grey-animal-vehicle"
-        dataset = "svhn"
+        dataset = "cifar-10"
+
+        print("Dataset: %s" % dataset)
 
         if dataset == "adult":
             # Adult
@@ -148,7 +144,7 @@ if __name__ == "__main__":
 
             model = SimpleMLP(X_train.shape[1], 2, hidden_layer_sizes=(1000,))
         elif dataset == "cifar-10-grey-animal-vehicle":
-            # CIFAR-10
+            # CIFAR-10-Grey
             base_dataset = "datasets-ci/cifar-10-grey-animal-vehicle.parquet"
 
             # Reading X, y (base dataset) and bags (dataset)
@@ -170,9 +166,32 @@ if __name__ == "__main__":
                 1, 64, kernel_size=7, stride=2, padding=3, bias=False
             )
             model.fc = nn.Linear(model.fc.in_features, 2)
+        elif dataset == "svhn" or dataset == "cifar-10":
+            # SVHN
+            base_dataset = f"datasets-ci/{dataset}.parquet"
+
+            # Reading X, y (base dataset) and bags (dataset)
+            df = pd.read_parquet(base_dataset)
+            X = df.drop(["y"], axis=1).values
+            y = df["y"].values
+            y = y.reshape(-1)
+
+            X = X.reshape(-1, 3, 32, 32)
+
+            train_index, test_index = next(ShuffleSplit(n_splits=1, test_size=0.25, random_state=seed[execution]).split(X))
+
+            X_train, y_train = X[train_index], y[train_index]
+            X_test, y_test = X[test_index], y[test_index]
+
+            # Restnet18
+            model = resnet18(weights="IMAGENET1K_V1")
+            model.conv1 = nn.Conv2d(
+                3, 64, kernel_size=7, stride=2, padding=3, bias=False
+            )
+            model.fc = nn.Linear(model.fc.in_features, 10)
 
         model = model.to(device)
-        criterion = nn.CrossEntropyLoss(weight=torch.tensor([1.0, 3.0])).to(device)
+        criterion = nn.CrossEntropyLoss().to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=0.001)    
 
         # Convert to tensor (float32)
@@ -204,8 +223,7 @@ if __name__ == "__main__":
 
         y_pred = np.array(y_pred).reshape(-1)
         print(classification_report(y_test, y_pred, digits=4))
-        print("F1-score: %.4f" % f1_score(y_test, y_pred))
-        f1_scores.append(f1_score(y_test, y_pred))
+        f1_scores.append(f1_score(y_test, y_pred, average="macro" if len(np.unique(y)) > 2 else "binary"))
 
     print("F1-score: %.4f" % np.mean(f1_scores))
 
