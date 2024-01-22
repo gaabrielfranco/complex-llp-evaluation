@@ -428,6 +428,9 @@ elif args.plot_type == "best-methods":
         
     df_best_methods["best_hyperparam_method_cat"] = df_best_methods.best_hyperparam_method.apply(get_best_hyperparam_method_cat)
 
+    # # Getting only large domains
+    # df_best_methods = df_best_methods[~df_best_methods.n_bags.isin(["extra-large", "extra-extra-large", "massive"])]
+
     # Heatmap using Generalized Jaccard Index
 
     # Computing the Jaccard Index (multiset version)
