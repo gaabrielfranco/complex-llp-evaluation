@@ -440,8 +440,8 @@ elif args.plot_type == "best-methods":
     plt.rcParams['axes.facecolor'] = 'white'
     plt.rcParams['axes.edgecolor'] = 'black'
     plt.rc('font', size=6)
-    fig, ax = plt.subplots(1, 2, figsize=(6, 3), sharey=True, sharex=True)
-
+    #fig, ax = plt.subplots(1, 2, figsize=(6, 3), sharey=True, sharex=True)
+    matrices_jaccard = {}
     for idx, base_dataset in enumerate(df_best_methods.base_dataset.unique()):
         x = df_best_methods[df_best_methods.base_dataset == base_dataset]
         matrix_jaccard = np.zeros((4, 4), dtype=np.float32)
@@ -470,13 +470,46 @@ elif args.plot_type == "best-methods":
 
                 # Computing the Generalized Jaccard Index
                 matrix_jaccard[i, j] = num / den
-        
+
+        matrices_jaccard[base_dataset] = matrix_jaccard
         # Plotting the heatmap
-        sns.heatmap(matrix_jaccard, annot=True, cmap="YlGnBu", xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], ax=ax[idx], vmin=0, vmax=1, annot_kws={"size": 5})
-        ax[idx].set_xlabel("Dataset Variant")
-        ax[idx].set_ylabel("Dataset Variant")
-        ax[idx].set_title(base_dataset)
+        #sns.heatmap(matrix_jaccard, annot=True, cmap="YlGnBu", xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], ax=ax[idx], vmin=0, vmax=1, annot_kws={"size": 5})
+        
+        # ax[idx].set_xlabel("Dataset Variant")
+        # ax[idx].set_ylabel("Dataset Variant")
+        # ax[idx].set_title(base_dataset)
+    fig = plt.figure()
+    gs0 = matplotlib.gridspec.GridSpec(1,2, width_ratios=[20,2], hspace=0.05)
+    gs00 = matplotlib.gridspec.GridSpecFromSubplotSpec(1,2, subplot_spec=gs0[1], hspace=0, wspace=1.5)
+
+    ax = fig.add_subplot(gs0[0])
+    cax1 = fig.add_subplot(gs00[0])
+    cax2 = fig.add_subplot(gs00[1])
+    
+    vmin, vmax = 0, 1
+    from matplotlib.colors import ListedColormap
+    for i, base_dataset in enumerate(df_best_methods.base_dataset.unique()):
+        print(base_dataset)
+        matrix_jaccard = matrices_jaccard[base_dataset]
+        if i == 1:
+            mask = np.zeros_like(matrix_jaccard, dtype=bool)
+             # Fill above diagonal with True
+            mask[np.triu_indices_from(mask)] = True
+            sns.heatmap(matrix_jaccard, annot=True, mask=mask, cmap='Blues', vmin=vmin, vmax=vmax, ax=ax, cbar_ax=cax2, cbar_kws={"label": base_dataset}, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], annot_kws={"size": 5})
+        else:
+            mask = np.zeros_like(matrix_jaccard, dtype=bool)
+             # Fill bellow diagonal with True
+            mask[np.tril_indices_from(mask)] = True
+            sns.heatmap(matrix_jaccard, annot=True, mask=mask, cmap='OrRd', vmin=vmin, vmax=vmax, ax=ax, cbar_ax=cax1, cbar_kws={"label": base_dataset, "ticks":[]}, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], annot_kws={"size": 5})
+    sns.heatmap(np.ones((4, 4), dtype=int), mask=~np.eye(4, dtype=bool), cmap=ListedColormap(['white']), annot=True, annot_kws={"size": 5}, cbar=False, ax=ax, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"])
+
     plt.tight_layout()
+    plt.show()
+    exit()
+
+    plt.tight_layout()
+    plt.show()
+    exit()
     filename = f"plots/{args.n_classes}-jaccard-index-heatmap-best-algorithm.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
