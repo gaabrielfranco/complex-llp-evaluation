@@ -129,8 +129,7 @@ else:
 all_models = final_results["model"].unique()
 
 # Adding domain column
-if args.split_domain:
-    final_results["dataset_domain"] = final_results["bag_sizes"].apply(lambda x: "large" if x == "fol-clust" else "small")
+final_results["dataset_domain"] = final_results["bag_sizes"].apply(lambda x: "large" if x == "fol-clust" else "small")
 
 # We have a total of 96 datasets for binary classification
 # We have a total of 8 algoritms for binary classification
