@@ -436,8 +436,41 @@ elif args.plot_type == "best-methods":
         
     df_best_methods["best_hyperparam_method_cat"] = df_best_methods.best_hyperparam_method.apply(get_best_hyperparam_method_cat)
 
-    # # # Getting only large domains
-    # # df_best_methods = df_best_methods[~df_best_methods.n_bags.isin(["extra-large", "extra-extra-large", "massive"])]
+    # # Computing dataset domain
+    df_best_methods["dataset_domain"] = df_best_methods["bag_sizes"].apply(lambda x: "large" if x == "fol-clust" else "small")
+
+    """
+
+    Small domains:
+
+        dataset_variant best_algorithm
+    69    Intermediate       ['DLLP']
+    70    Intermediate       ['DLLP']
+    72    Intermediate       ['DLLP']
+    73    Intermediate       ['DLLP']
+    76           Naive       ['DLLP']
+    77           Naive       ['DLLP']
+    79           Naive       ['DLLP']
+    80           Naive       ['DLLP']
+
+    Jaccard Index (Intermediate, Naive): 1
+    
+    Large domains:
+
+        dataset_variant                       best_algorithm
+    67    Intermediate        ['LLPFC', 'MixBag + LLP-VAT']
+    68    Intermediate  ['LLPFC', 'MM', 'MixBag + LLP-VAT']
+    71    Intermediate      ['LLP-VAT', 'MixBag + LLP-VAT']
+    74           Naive                             ['DLLP']
+    75           Naive                             ['DLLP']
+    78           Naive                             ['DLLP']
+
+    Jaccard Index (Intermediate, Naive): 0
+
+    Both together:
+
+    Jaccard Index (Intermediate, Naive): 0.29 (due to DLLP)
+    """
 
     # # Heatmap using Generalized Jaccard Index
 
@@ -724,8 +757,11 @@ elif args.plot_type == "best-methods":
     matplotlib.rcParams['pdf.fonttype'] = 42
     matplotlib.rcParams['ps.fonttype'] = 42
     matplotlib.style.use('ggplot')
-    plt.rcParams['axes.facecolor'] = 'white'
+    # plt.rcParams['axes.facecolor'] = 'white'
     plt.rc('font', size=6)
+
+    # Getting only the small domains
+    # df_best_methods = df_best_methods[df_best_methods.dataset_domain == "small"]
 
     D = df_best_methods.groupby(["base_dataset", "dataset_variant"]).best_algorithm.value_counts()
     D = D.reset_index(name="count")
