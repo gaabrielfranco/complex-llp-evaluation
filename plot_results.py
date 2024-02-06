@@ -24,8 +24,7 @@ def get_dataset_variant(dataset):
 # Arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('--plot_type', "-p", type=str, required=True, help="Plot to generate")
-parser.add_argument('--n_classes', "-n", choices=["binary", "multiclass"], type=str, required=True, help="Number of classes")
-parser.add_argument("--split_domain", "-s", action="store_true", help="Split the domain in the plots")
+parser.add_argument('--n_classes', "-n", choices=["binary", "multiclass", "all"], type=str, required=True, help="Number of classes")
 args = parser.parse_args()
 
 VARIANTS = ["naive", "simple", "intermediate", "hard"]
@@ -120,7 +119,9 @@ final_results["dataset_type"] = "None"
 for base_dataset in base_datasets_type:
     final_results.loc[final_results.base_dataset.str.contains(base_dataset), "dataset_type"] = base_datasets_type[base_dataset]
 
-if args.n_classes == "binary":
+if args.n_classes == "all":
+    pass
+elif args.n_classes == "binary":
     final_results = final_results[((final_results.base_dataset != "cifar-10") & (final_results.base_dataset != "svhn"))]
 else:
     final_results = final_results[((final_results.base_dataset == "cifar-10") | (final_results.base_dataset == "svhn"))]
@@ -141,6 +142,25 @@ if args.plot_type == "check-n-experiments":
     for model in final_results["model"].unique():
         print(model, len(final_results[final_results["model"] == model]))
     print("")
+    T = {
+        "MM": 4,
+        "AMM": 12,
+        "LMM": 36,
+        "EM/LR": 6,
+        "DLLP": 5,
+        "LLP-VAT": 5,
+        "MixBag": 5,
+        "LLPFC": 5,
+    }
+
+    print("Total trained models considering HS: ")
+    sum_models = 0
+    for model in final_results["model"].unique():
+        print(model, len(final_results[final_results["model"] == model]) * (T[model] + 1))
+        sum_models += len(final_results[final_results["model"] == model]) * (T[model] + 1)
+    print("Total models: ", sum_models)
+    print("")
+
     # Checking number of experiments
     n_experiments_df = final_results.groupby(["model", "dataset", "split_method"]).size().reset_index(name='counts').sort_values(by="counts", ascending=False)
     print("Total number of experiments:", len(n_experiments_df))
@@ -154,6 +174,9 @@ elif args.plot_type == "datasets-info":
 
     # Removing base datasets
     files = [file for file in files if "adult.parquet" not in file and "cifar-10-grey-animal-vehicle.parquet" not in file]
+
+    # Removing base dataset for multiclass
+    files = [file for file in files if "cifar-10.parquet" not in file and "svhn.parquet" not in file]
 
     for file in files:
 
@@ -195,7 +218,7 @@ elif args.plot_type == "best-methods":
     base_dataset_map = {
         "cifar-10": "CIFAR-10",
         "svhn": "SVHN",
-        "cifar-10-grey": "CIFAR-10\n(Greyscale)",
+        "cifar-10-grey": "CIFAR-10\n(Grayscale)",
         "adult": "Adult"
     }
 
@@ -217,7 +240,7 @@ elif args.plot_type == "best-methods":
     # for ax in g.axes.flat:
     #     if args.n_classes == "binary":
     #         ax.axvline(x=base_datasets_supervised_f1_score["adult"], ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult\nsupervised") # Adult performance
-    #         ax.axvline(x=base_datasets_supervised_f1_score["cifar-10-grey"], ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10\n(Greyscale)\nsupervised") # CIFAR-10-Grey performance
+    #         ax.axvline(x=base_datasets_supervised_f1_score["cifar-10-grey"], ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10\n(Grayscale)\nsupervised") # CIFAR-10-Grey performance
     #     else:
     #         ax.axvline(x=base_datasets_supervised_f1_score["cifar-10"], ymin=0.5, ymax=1, color="black", linestyle="--", label="CIFAR-10\nsupervised") # CIFAR-10 performance
     #         ax.axvline(x=base_datasets_supervised_f1_score["svhn"], ymin=0, ymax=0.5, color="red", linestyle="--", label="SVHN\nsupervised") # SVHN performance
@@ -705,7 +728,7 @@ elif args.plot_type == "table-all-results":
     get_performance = lambda x: f"{np.round(x.f1_test.mean(), 4)} ({np.round(1.96 * np.std(x.f1_test.values)/np.sqrt(len(x.f1_test.values)), 4)})"
 
     # Dataframe with all results
-    df_results = pd.DataFrame(columns=["Dataset", "Algorithm", "Full-Bag K-fold", "Split-Bag K-fold", "Split-Bag Shuffle", "Split-Bag Bootstrap"])
+    df_results = pd.DataFrame(columns=["Dataset", "Algorithm", "Average (std) $F_1$-score on test set"])
 
     for dataset in final_results.dataset.unique():
         final_result_dataset = deepcopy(final_results[final_results.dataset == dataset])
@@ -714,10 +737,7 @@ elif args.plot_type == "table-all-results":
             df_results = pd.concat([df_results, pd.DataFrame({
                 "Dataset": dataset,
                 "Algorithm": model,
-                "Full-Bag K-fold": get_performance(data[data.split_method == "FB\nKF\n"]),
-                "Split-Bag K-fold": get_performance(data[data.split_method == "SB\nKF\n"]),
-                "Split-Bag Shuffle": get_performance(data[data.split_method == "SB\nSH\n0.5"]),
-                "Split-Bag Bootstrap": get_performance(data[data.split_method == "SB\nBS\n0.5"]),
+                "Average (std) $F_1$-score on test set": get_performance(data[data.split_method == "SB\nSH\n0.5"]),
             }, index=[0])], ignore_index=True)
 
     with pd.option_context("max_colwidth", 10000):
