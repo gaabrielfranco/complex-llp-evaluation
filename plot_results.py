@@ -255,12 +255,12 @@ elif args.plot_type == "best-methods":
     # for idx, ax in enumerate(g.axes.flat):
     #     ax.set_xticks(np.arange(0, 1.1, 0.2))
     #     ax.set_ylabel("")
-    #     # if idx == 3:
-    #     #     ax.set_xticklabels(["0", "0.2", "0.4", "0.6", "0.8", "1"], rotation=90)
-    #     #     ax.set_xlabel(r"$F_1$-score")
-    #     # else:
-    #     ax.set_xticklabels([])
-    #     ax.set_xlabel("")
+    #     if idx == 3:
+    #         ax.set_xticklabels(["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"])
+    #         ax.set_xlabel(r"$F_1$-score")
+    #     else:
+    #         ax.set_xticklabels([])
+    #         ax.set_xlabel("")
 
     # g.set_xlabels(r"$F_1$-score")
     # filename = f"plots/{args.n_classes}-avg-performance-per-method-f1.pdf"
@@ -482,23 +482,26 @@ elif args.plot_type == "best-methods":
     # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     # plt.close()
 
-    # # Plot the effect size: how much the best algorithms are the best
-    # matplotlib.rcParams['pdf.fonttype'] = 42
-    # matplotlib.rcParams['ps.fonttype'] = 42
-    # matplotlib.style.use('ggplot')
-    # plt.rcParams['axes.facecolor'] = 'white'
-    # plt.rc('font', size=6)
+    # Plot the effect size: how much the best algorithms are the best
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rc('font', size=6)
     
-    # fig, ax = plt.subplots(2, 2, figsize=(3.5, 2), sharey=True, sharex=True)
-    # for idx, llp_variant in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
-    #     sns.histplot(diff_best_model_bottom[llp_variant], kde=True, ax=ax[idx // 2, idx % 2], kde_kws={'bw_adjust': 0.5}, stat="count")
-    #     ax[idx // 2, idx % 2].set_xlabel("Difference in " + r"$F_1$" + "-score")
-    #     ax[idx // 2, idx % 2].set_ylabel("Count")
-    #     ax[idx // 2, idx % 2].set_title(llp_variant)
-    # plt.tight_layout()
-    # filename = f"plots/{args.n_classes}-effect-sizes-dist.pdf"
-    # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
-    # plt.close()
+    fig, ax = plt.subplots(2, 2, figsize=(3.5, 2), sharey=True, sharex=True)
+    for idx, llp_variant in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
+        sns.histplot(diff_best_model_bottom[llp_variant], kde=True, ax=ax[idx // 2, idx % 2], kde_kws={'bw_adjust': 0.5}, stat="count")
+        ax[idx // 2, idx % 2].set_xlabel("Difference in " + r"$F_1$" + "-score")
+        ax[idx // 2, idx % 2].set_ylabel("Count")
+        ax[idx // 2, idx % 2].set_title(llp_variant)
+        ax[idx // 2, idx % 2].set_xticks([0, 0.05, 0.1, 0.15, 0.2, 0.25])
+        ax[idx // 2, idx % 2].set_xticklabels(["0.00", "0.05", "0.10", "0.15", "0.20", "0.25"])
+    plt.tight_layout()
+    filename = f"plots/{args.n_classes}-effect-sizes-dist.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.close()
+    exit()
 
     # # Print best algorithm per base dataset and dataset variant
     # D = df_best_methods.groupby(["base_dataset", "dataset_variant"]).best_algorithm.value_counts()
