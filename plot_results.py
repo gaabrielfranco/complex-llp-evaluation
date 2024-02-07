@@ -707,10 +707,10 @@ elif args.plot_type == "best-methods":
     # Replace count with proportion
     D["Count"] = D["Count"] / D.groupby(["Base Dataset", "Dataset Variant"])["Count"].transform('sum')
     D = D.sort_values(by=["Base Dataset", "Dataset Variant", "Count"], ascending=False)
-    D.rename(columns={"Count": "Fraction of wins"}, inplace=True)
+    D.rename(columns={"Count": "Fraction"}, inplace=True)
 
     # Plot (Base Dataset, Dataset Variant) combinations
-    g = sns.catplot(y="Base Dataset", x="Fraction of wins", hue="Best Algorithm", col="Dataset Variant", 
+    g = sns.catplot(y="Base Dataset", x="Fraction", hue="Best Algorithm", col="Dataset Variant", 
                     data=D, kind="bar", errorbar=None, legend=False, height=1.5, aspect=1.25, 
                     palette=palette, col_wrap=1, hue_order=hue_order)
     # Remove ylabels
@@ -719,7 +719,7 @@ elif args.plot_type == "best-methods":
 
     g.set_titles("{col_name}")
     plt.legend(loc="center right", borderaxespad=0., fontsize=5)
-    plt.xlabel("Fraction of wins")
+    plt.xlabel("Fraction")
     filename = f"plots/{args.n_classes}-best-algorithms-count-per-base-dataset-and-dataset-variant.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
