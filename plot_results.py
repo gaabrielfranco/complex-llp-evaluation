@@ -267,6 +267,79 @@ elif args.plot_type == "best-methods":
     # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     # plt.close()
 
+    # Heatmap of counts of best f1-score per exec
+    df_count = pd.DataFrame(columns=["dataset"] + hue_order)
+    for idx, dataset in enumerate(sorted(final_results.dataset.unique())):
+        print(idx, dataset)
+        count_models = {}
+        for model in final_results.model.unique():
+            count_models[model] = 0.0
+
+        best_method = deepcopy(final_results[(final_results.dataset == dataset)])
+
+        best_method["pretty_dataset_name"] = best_method["base_dataset"] + " (" + best_method["dataset_variant"] + ") " + best_method["dataset"].apply(lambda x: x.split("-")[-1]) + " bags"
+
+        if len(best_method) != 80 and len(best_method) != 40:
+            raise ValueError("Number of experiments is not 80/40")
+        
+        for exec in sorted(best_method.exec.unique()):
+            best_method_exec = deepcopy(best_method[best_method.exec == exec])
+            if len(best_method_exec) != 8 and len(best_method_exec) != 4:
+                raise ValueError("Number of experiments is not 8/4")
+       
+            # Model with largest f1-score
+            model = best_method_exec[best_method_exec.f1_test == best_method_exec.f1_test.max()].model.values[0]
+
+            count_models[model] += 1
+
+        if args.n_classes == "binary":
+            df_count = pd.concat([df_count, pd.DataFrame({
+                "dataset": dataset,
+                "DLLP": count_models["DLLP"],
+                "LLP-VAT": count_models["LLP-VAT"],
+                "MixBag": count_models["MixBag"],
+                "LLPFC": count_models["LLPFC"],
+                "MM": count_models["MM"],
+                "AMM": count_models["AMM"],
+                "LMM": count_models["LMM"],
+                "EM/LR": count_models["EM/LR"]
+            }, index=[0])], ignore_index=True)
+        elif args.n_classes == "multiclass":
+            df_count = pd.concat([df_count, pd.DataFrame({
+                "dataset": best_method.pretty_dataset_name.unique()[0],
+                "DLLP": count_models["DLLP"],
+                "LLP-VAT": count_models["LLP-VAT"],
+                "MixBag": count_models["MixBag"],
+                "LLPFC": count_models["LLPFC"]
+            }, index=[0])], ignore_index=True)
+
+
+    # Plot heatmap
+    g = sns.heatmap(df_count.set_index("dataset"), annot=False, cmap="YlGnBu")
+    # Get axis
+    if args.n_classes == "binary":
+        ax = g.axes
+        ax.set_yticklabels([])
+        ax.set_yticks([])
+        ax.set_ylabel("")
+        ax.hlines([15, 30, 37, 52, 67, 74, 81], *ax.get_xlim())
+        # Add text to the heatmap (left side) to substitute the y-axis
+        ax.text(-0.5, 7.5, "Adult\n(Hard)", ha="center", va="center", fontsize=8)
+        ax.text(-0.5, 22.5, "Adult\n(Interm.)", ha="center", va="center", fontsize=8)
+        ax.text(-0.5, 33.5, "Adult\n(Naive)", ha="center", va="center", fontsize=8)
+        ax.text(-0.5, 44.5, "Adult\n(Simple)", ha="center", va="center", fontsize=8)
+        
+        ax.text(-0.5, 59.5, "CIFAR-10\n(Hard)", ha="center", va="center", fontsize=8)
+        ax.text(-0.5, 70.5, "CIFAR-10\n(Interm.)", ha="center", va="center", fontsize=8)
+        ax.text(-0.5, 78.5, "CIFAR-10\n(Naive)", ha="center", va="center", fontsize=8)
+        ax.text(-0.5, 88, "CIFAR-10\n(Simple)", ha="center", va="center", fontsize=8)
+    else:
+        ax = g.axes
+        ax.hlines([3, 6, 9, 12, 15, 18, 21], *ax.get_xlim())
+    
+    plt.savefig(f"plots/heatmap-best-methods-{args.n_classes}.pdf", bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.close()
+
     df_best_methods = pd.DataFrame(columns=["base_dataset", "dataset_variant", "n_bags", "bag_sizes", "proportions", "best_hyperparam_method", "best_algorithm", "best_in_both"])
     diff_best_model_bottom = {}
     for base_dataset in sorted(final_results.base_dataset.unique()):
@@ -482,26 +555,26 @@ elif args.plot_type == "best-methods":
     # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
     # plt.close()
 
-    # Plot the effect size: how much the best algorithms are the best
-    matplotlib.rcParams['pdf.fonttype'] = 42
-    matplotlib.rcParams['ps.fonttype'] = 42
-    matplotlib.style.use('ggplot')
-    plt.rcParams['axes.facecolor'] = 'white'
-    plt.rc('font', size=6)
+    # # Plot the effect size: how much the best algorithms are the best
+    # matplotlib.rcParams['pdf.fonttype'] = 42
+    # matplotlib.rcParams['ps.fonttype'] = 42
+    # matplotlib.style.use('ggplot')
+    # plt.rcParams['axes.facecolor'] = 'white'
+    # plt.rc('font', size=6)
     
-    fig, ax = plt.subplots(2, 2, figsize=(3.5, 2), sharey=True, sharex=True)
-    for idx, llp_variant in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
-        sns.histplot(diff_best_model_bottom[llp_variant], kde=True, ax=ax[idx // 2, idx % 2], kde_kws={'bw_adjust': 0.5}, stat="count")
-        ax[idx // 2, idx % 2].set_xlabel("Difference in " + r"$F_1$" + "-score")
-        ax[idx // 2, idx % 2].set_ylabel("Count")
-        ax[idx // 2, idx % 2].set_title(llp_variant)
-        ax[idx // 2, idx % 2].set_xticks([0, 0.05, 0.1, 0.15, 0.2, 0.25])
-        ax[idx // 2, idx % 2].set_xticklabels(["0.00", "0.05", "0.10", "0.15", "0.20", "0.25"])
-    plt.tight_layout()
-    filename = f"plots/{args.n_classes}-effect-sizes-dist.pdf"
-    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
-    plt.close()
-    exit()
+    # fig, ax = plt.subplots(2, 2, figsize=(3.5, 2), sharey=True, sharex=True)
+    # for idx, llp_variant in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
+    #     sns.histplot(diff_best_model_bottom[llp_variant], kde=True, ax=ax[idx // 2, idx % 2], kde_kws={'bw_adjust': 0.5}, stat="count")
+    #     ax[idx // 2, idx % 2].set_xlabel("Difference in " + r"$F_1$" + "-score")
+    #     ax[idx // 2, idx % 2].set_ylabel("Count")
+    #     ax[idx // 2, idx % 2].set_title(llp_variant)
+    #     ax[idx // 2, idx % 2].set_xticks([0, 0.05, 0.1, 0.15, 0.2, 0.25])
+    #     ax[idx // 2, idx % 2].set_xticklabels(["0.00", "0.05", "0.10", "0.15", "0.20", "0.25"])
+    # plt.tight_layout()
+    # filename = f"plots/{args.n_classes}-effect-sizes-dist.pdf"
+    # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    # plt.close()
+    # exit()
 
     # # Print best algorithm per base dataset and dataset variant
     # D = df_best_methods.groupby(["base_dataset", "dataset_variant"]).best_algorithm.value_counts()
