@@ -277,16 +277,21 @@ elif args.plot_type == "best-methods":
         if len(best_method) != 80 and len(best_method) != 40:
             raise ValueError("Number of experiments is not 80/40")
         
-        for exec in sorted(best_method.exec.unique()):
-            best_method_exec = deepcopy(best_method[best_method.exec == exec])
-            if len(best_method_exec) != 8 and len(best_method_exec) != 4:
-                raise ValueError("Number of experiments is not 8/4")
+        for model in best_method.model.unique():
+            # Avg f1-score
+            avg_f1 = best_method[best_method.model == model].f1_test.mean()
+            count_models[model] = avg_f1
+        
+        # for exec in sorted(best_method.exec.unique()):
+        #     best_method_exec = deepcopy(best_method[best_method.exec == exec])
+        #     if len(best_method_exec) != 8 and len(best_method_exec) != 4:
+        #         raise ValueError("Number of experiments is not 8/4")
        
-            # Model with largest f1-score
-            model = best_method_exec[best_method_exec.f1_test == best_method_exec.f1_test.max()].model.values[0]
+        #     # Model with largest f1-score
+        #     model = best_method_exec[best_method_exec.f1_test == best_method_exec.f1_test.max()].model.values[0]
 
-            count_models[model] += 1
-
+        #     count_models[model] += 1
+            
         if args.n_classes == "binary":
             df_count = pd.concat([df_count, pd.DataFrame({
                 "dataset": dataset,
@@ -310,14 +315,15 @@ elif args.plot_type == "best-methods":
 
 
     # Plot heatmap
-    g = sns.heatmap(df_count.set_index("dataset"), annot=False, cmap="YlGnBu")
+    #g = sns.heatmap(df_count.set_index("dataset"), annot=False, cmap="YlGnBu")
+    g = sns.heatmap(df_count.set_index("dataset"), annot=False, vmin=0, vmax=1, cmap="mako")
     # Get axis
     if args.n_classes == "binary":
         ax = g.axes
         ax.set_yticklabels([])
         ax.set_yticks([])
         ax.set_ylabel("")
-        ax.hlines([15, 30, 37, 52, 67, 74, 81], *ax.get_xlim())
+        ax.hlines([15, 30, 37, 52, 67, 74, 81], *ax.get_xlim(), color="red")
         # Add text to the heatmap (left side) to substitute the y-axis
         ax.text(-0.5, 7.5, "Adult\n(Hard)", ha="center", va="center", fontsize=8)
         ax.text(-0.5, 22.5, "Adult\n(Interm.)", ha="center", va="center", fontsize=8)
@@ -332,8 +338,9 @@ elif args.plot_type == "best-methods":
         ax = g.axes
         ax.hlines([3, 6, 9, 12, 15, 18, 21], *ax.get_xlim())
     
-    plt.savefig(f"plots/heatmap-best-methods-{args.n_classes}.pdf", bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.savefig(f"plots/heatmap-best-methods-avg-f1-{args.n_classes}.pdf", bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
+    exit()
 
     df_best_methods = pd.DataFrame(columns=["base_dataset", "dataset_variant", "n_bags", "bag_sizes", "proportions", "best_hyperparam_method", "best_algorithm", "best_in_both"])
     diff_best_model_bottom = {}
