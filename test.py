@@ -1,6 +1,7 @@
 import glob
 
-files = glob.glob("datasets-ci/svhn-[naive|simple|intermediate|hard]*")
+#files = glob.glob("datasets-ci/svhn-[naive|simple|intermediate|hard]*")
+files = glob.glob("datasets-ci/cifar-10-[naive|simple|intermediate|hard]*")
 files = sorted(files)
 
 print(len(files))

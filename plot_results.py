@@ -132,10 +132,6 @@ all_models = final_results["model"].unique()
 # Adding domain column
 final_results["dataset_domain"] = final_results["bag_sizes"].apply(lambda x: "large" if x == "fol-clust" else "small")
 
-# We have a total of 96 datasets for binary classification
-# We have a total of 8 algoritms for binary classification
-# We have a total of 5 execs for binary classification (we will increase it to 10)
-# Total = 96 * 8 * 5 = 3840
 if args.plot_type == "check-n-experiments":
     total_models = len(final_results)
     print("Total trained models: ", total_models)
@@ -224,53 +220,52 @@ elif args.plot_type == "best-methods":
 
     final_results["base_dataset"] = final_results["base_dataset"].replace(base_dataset_map)
 
-    # # f1-score
-    # matplotlib.rcParams['pdf.fonttype'] = 42
-    # matplotlib.rcParams['ps.fonttype'] = 42
-    # matplotlib.style.use('ggplot')
-    # plt.rcParams['axes.facecolor'] = 'white'
-    # plt.rcParams['axes.edgecolor'] = 'black'
-    # plt.rc('font', size=6)
-    # g = sns.catplot(y="base_dataset", x="f1_test", hue="model", col="dataset_variant", 
-    #                 data=final_results, kind="bar", col_order=["Hard", "Intermediate", "Simple", "Naive"], 
-    #                 legend=True, height=1.5, aspect=1, sharex=True, errorbar="ci", capsize=0.05, col_wrap=2, 
-    #                 errwidth=1, hue_order=hue_order, palette=palette, legend_out=True)
-    # g.set_titles("{col_name}")
-    # # Draw a line with the f-score of the supervised neural network
-    # for ax in g.axes.flat:
-    #     if args.n_classes == "binary":
-    #         ax.axvline(x=base_datasets_supervised_f1_score["adult"], ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult\nsupervised") # Adult performance
-    #         ax.axvline(x=base_datasets_supervised_f1_score["cifar-10-grey"], ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10\n(Grayscale)\nsupervised") # CIFAR-10-Grey performance
-    #     else:
-    #         ax.axvline(x=base_datasets_supervised_f1_score["cifar-10"], ymin=0.5, ymax=1, color="black", linestyle="--", label="CIFAR-10\nsupervised") # CIFAR-10 performance
-    #         ax.axvline(x=base_datasets_supervised_f1_score["svhn"], ymin=0, ymax=0.5, color="red", linestyle="--", label="SVHN\nsupervised") # SVHN performance
+    # F1-score
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rcParams['axes.edgecolor'] = 'black'
+    plt.rc('font', size=6)
+    g = sns.catplot(y="base_dataset", x="f1_test", hue="model", col="dataset_variant", 
+                    data=final_results, kind="bar", col_order=["Hard", "Intermediate", "Simple", "Naive"], 
+                    legend=True, height=1.5, aspect=1, sharex=True, errorbar="ci", capsize=0.05, col_wrap=2, 
+                    errwidth=1, hue_order=hue_order, palette=palette, legend_out=True)
+    g.set_titles("{col_name}")
+    # Draw a line with the f-score of the supervised neural network
+    for ax in g.axes.flat:
+        if args.n_classes == "binary":
+            ax.axvline(x=base_datasets_supervised_f1_score["adult"], ymin=0.5, ymax=1, color="black", linestyle="--", label="Adult\nsupervised") # Adult performance
+            ax.axvline(x=base_datasets_supervised_f1_score["cifar-10-grey"], ymin=0, ymax=0.5, color="red", linestyle="--", label="CIFAR-10\n(Grayscale)\nsupervised") # CIFAR-10-Grey performance
+        else:
+            ax.axvline(x=base_datasets_supervised_f1_score["cifar-10"], ymin=0.5, ymax=1, color="black", linestyle="--", label="CIFAR-10\nsupervised") # CIFAR-10 performance
+            ax.axvline(x=base_datasets_supervised_f1_score["svhn"], ymin=0, ymax=0.5, color="red", linestyle="--", label="SVHN\nsupervised") # SVHN performance
     
-    # handles, labels = ax.get_legend_handles_labels()
-    # # Adding the new handles and labels to the legend
-    # g._legend.remove()
-    # g.fig.legend(handles, labels, loc='center left', bbox_to_anchor=(0.8, 0.5), fontsize=5, ncols=1)
-    # #g.fig.legend(handles, labels, loc='center left', bbox_to_anchor=(0.7, 0.5), fontsize=5, ncol=1)
+    handles, labels = ax.get_legend_handles_labels()
+    # Adding the new handles and labels to the legend
+    g._legend.remove()
+    g.fig.legend(handles, labels, loc='center left', bbox_to_anchor=(0.8, 0.5), fontsize=5, ncols=1)
+    #g.fig.legend(handles, labels, loc='center left', bbox_to_anchor=(0.7, 0.5), fontsize=5, ncol=1)
 
-    # # Set xticks
-    # for idx, ax in enumerate(g.axes.flat):
-    #     ax.set_xticks(np.arange(0, 1.1, 0.2))
-    #     ax.set_ylabel("")
-    #     if idx == 3:
-    #         ax.set_xticklabels(["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"])
-    #         ax.set_xlabel(r"$F_1$-score")
-    #     else:
-    #         ax.set_xticklabels([])
-    #         ax.set_xlabel("")
+    # Set xticks
+    for idx, ax in enumerate(g.axes.flat):
+        ax.set_xticks(np.arange(0, 1.1, 0.2))
+        ax.set_ylabel("")
+        if idx == 3:
+            ax.set_xticklabels(["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"])
+            ax.set_xlabel(r"$F_1$-score")
+        else:
+            ax.set_xticklabels([])
+            ax.set_xlabel("")
 
-    # g.set_xlabels(r"$F_1$-score")
-    # filename = f"plots/{args.n_classes}-avg-performance-per-method-f1.pdf"
-    # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
-    # plt.close()
+    g.set_xlabels(r"$F_1$-score")
+    filename = f"plots/{args.n_classes}-avg-performance-per-method-f1.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.close()
 
     # Heatmap of counts of best f1-score per exec
     df_count = pd.DataFrame(columns=["dataset"] + hue_order)
     for idx, dataset in enumerate(sorted(final_results.dataset.unique())):
-        print(idx, dataset)
         count_models = {}
         for model in final_results.model.unique():
             count_models[model] = 0.0
@@ -480,273 +475,99 @@ elif args.plot_type == "best-methods":
     # # Computing dataset domain
     df_best_methods["dataset_domain"] = df_best_methods["bag_sizes"].apply(lambda x: "large" if x == "fol-clust" else "small")
 
-    # # # Heatmap using Generalized Jaccard Index
+    # # Heatmap using Generalized Jaccard Index
 
-    # # Computing the Jaccard Index (multiset version)
-    # matplotlib.rcParams['pdf.fonttype'] = 42
-    # matplotlib.rcParams['ps.fonttype'] = 42
-    # matplotlib.style.use('ggplot')
-    # plt.rcParams['axes.facecolor'] = 'white'
-    # plt.rcParams['axes.edgecolor'] = 'black'
-    # plt.rc('font', size=6)
-    # #fig, ax = plt.subplots(1, 2, figsize=(6, 3), sharey=True, sharex=True)
-    # matrices_jaccard = {}
-    # for idx, base_dataset in enumerate(df_best_methods.base_dataset.unique()):
-    #     x = df_best_methods[df_best_methods.base_dataset == base_dataset]
-    #     matrix_jaccard = np.zeros((4, 4), dtype=np.float32)
-    #     for i, dataset_variant_1 in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
-    #         for j, dataset_variant_2 in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
-    #             x1 = x[(x.dataset_variant == dataset_variant_1)].best_algorithm.values
-    #             x2 = x[(x.dataset_variant == dataset_variant_2)].best_algorithm.values
+    # Computing the Jaccard Index (multiset version)
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rcParams['axes.edgecolor'] = 'black'
+    plt.rc('font', size=6)
+    matrices_jaccard = {}
+    for idx, base_dataset in enumerate(df_best_methods.base_dataset.unique()):
+        x = df_best_methods[df_best_methods.base_dataset == base_dataset]
+        matrix_jaccard = np.zeros((4, 4), dtype=np.float32)
+        for i, dataset_variant_1 in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
+            for j, dataset_variant_2 in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
+                x1 = x[(x.dataset_variant == dataset_variant_1)].best_algorithm.values
+                x2 = x[(x.dataset_variant == dataset_variant_2)].best_algorithm.values
 
-    #             multiset_x1 = []
-    #             for ba in x1:
-    #                 for elem in eval(ba):
-    #                     multiset_x1.append(elem)
+                multiset_x1 = []
+                for ba in x1:
+                    for elem in eval(ba):
+                        multiset_x1.append(elem)
                 
-    #             multiset_x2 = []
-    #             for ba in x2:
-    #                 for elem in eval(ba):
-    #                     multiset_x2.append(elem)
+                multiset_x2 = []
+                for ba in x2:
+                    for elem in eval(ba):
+                        multiset_x2.append(elem)
                 
-    #             num = 0
-    #             den = 0
-    #             for alg in all_models:
-    #                 count_alg_x1 = multiset_x1.count(alg)
-    #                 count_alg_x2 = multiset_x2.count(alg)
-    #                 num += min(count_alg_x1, count_alg_x2)
-    #                 den += max(count_alg_x1, count_alg_x2)
+                num = 0
+                den = 0
+                for alg in all_models:
+                    count_alg_x1 = multiset_x1.count(alg)
+                    count_alg_x2 = multiset_x2.count(alg)
+                    num += min(count_alg_x1, count_alg_x2)
+                    den += max(count_alg_x1, count_alg_x2)
 
-    #             # Computing the Generalized Jaccard Index
-    #             matrix_jaccard[i, j] = num / den
+                # Computing the Generalized Jaccard Index
+                matrix_jaccard[i, j] = num / den
 
-    #     matrices_jaccard[base_dataset] = matrix_jaccard
-    #     # Plotting the heatmap
-    #     #sns.heatmap(matrix_jaccard, annot=True, cmap="YlGnBu", xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], ax=ax[idx], vmin=0, vmax=1, annot_kws={"size": 5})
-        
-    #     # ax[idx].set_xlabel("Dataset Variant")
-    #     # ax[idx].set_ylabel("Dataset Variant")
-    #     # ax[idx].set_title(base_dataset)
-    # fig = plt.figure(figsize=(3, 2))
-    # gs0 = matplotlib.gridspec.GridSpec(1,2, width_ratios=[20,3], hspace=0.0)
-    # gs00 = matplotlib.gridspec.GridSpecFromSubplotSpec(1,2, subplot_spec=gs0[1], hspace=0, wspace=6)
-
-    # ax = fig.add_subplot(gs0[0])
-    # cax1 = fig.add_subplot(gs00[0])
-    # cax2 = fig.add_subplot(gs00[1])
+        matrices_jaccard[base_dataset] = matrix_jaccard
     
-    # vmin, vmax = 0, 1
-    # from matplotlib.colors import ListedColormap
-    # for i, base_dataset in enumerate(df_best_methods.base_dataset.unique()):
-    #     matrix_jaccard = matrices_jaccard[base_dataset]
-    #     if i == 1:
-    #         mask = np.zeros_like(matrix_jaccard, dtype=bool)
-    #          # Fill above diagonal with True
-    #         mask[np.triu_indices_from(mask)] = True
-    #         sns.heatmap(matrix_jaccard, annot=True, mask=mask, cmap='Blues', vmin=vmin, vmax=vmax, ax=ax, cbar_ax=cax2, cbar_kws={"label": base_dataset}, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], annot_kws={"size": 5})
-    #     else:
-    #         mask = np.zeros_like(matrix_jaccard, dtype=bool)
-    #          # Fill bellow diagonal with True
-    #         mask[np.tril_indices_from(mask)] = True
-    #         sns.heatmap(matrix_jaccard, annot=True, mask=mask, cmap='OrRd', vmin=vmin, vmax=vmax, ax=ax, cbar_ax=cax1, cbar_kws={"label": base_dataset, "ticks":[]}, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], annot_kws={"size": 5})
-    # sns.heatmap(np.ones((4, 4), dtype=int), mask=~np.eye(4, dtype=bool), cmap=ListedColormap(['white']), annot=False, annot_kws={"size": 5}, cbar=False, ax=ax, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"])
-    # #plt.tight_layout()
-    # filename = f"plots/{args.n_classes}-jaccard-index-heatmap-best-algorithm.pdf"
-    # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
-    # plt.close()
+    fig = plt.figure(figsize=(3, 2))
+    gs0 = matplotlib.gridspec.GridSpec(1,2, width_ratios=[20,3], hspace=0.0)
+    gs00 = matplotlib.gridspec.GridSpecFromSubplotSpec(1,2, subplot_spec=gs0[1], hspace=0, wspace=6)
 
-    # # Plot the effect size: how much the best algorithms are the best
-    # matplotlib.rcParams['pdf.fonttype'] = 42
-    # matplotlib.rcParams['ps.fonttype'] = 42
-    # matplotlib.style.use('ggplot')
-    # plt.rcParams['axes.facecolor'] = 'white'
-    # plt.rc('font', size=6)
+    ax = fig.add_subplot(gs0[0])
+    cax1 = fig.add_subplot(gs00[0])
+    cax2 = fig.add_subplot(gs00[1])
     
-    # fig, ax = plt.subplots(2, 2, figsize=(3.5, 2), sharey=True, sharex=True)
-    # for idx, llp_variant in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
-    #     sns.histplot(diff_best_model_bottom[llp_variant], kde=True, ax=ax[idx // 2, idx % 2], kde_kws={'bw_adjust': 0.5}, stat="count")
-    #     ax[idx // 2, idx % 2].set_xlabel("Difference in " + r"$F_1$" + "-score")
-    #     ax[idx // 2, idx % 2].set_ylabel("Count")
-    #     ax[idx // 2, idx % 2].set_title(llp_variant)
-    #     ax[idx // 2, idx % 2].set_xticks([0, 0.05, 0.1, 0.15, 0.2, 0.25])
-    #     ax[idx // 2, idx % 2].set_xticklabels(["0.00", "0.05", "0.10", "0.15", "0.20", "0.25"])
-    # plt.tight_layout()
-    # filename = f"plots/{args.n_classes}-effect-sizes-dist.pdf"
-    # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
-    # plt.close()
-    # exit()
+    vmin, vmax = 0, 1
+    from matplotlib.colors import ListedColormap
+    for i, base_dataset in enumerate(df_best_methods.base_dataset.unique()):
+        matrix_jaccard = matrices_jaccard[base_dataset]
+        if i == 1:
+            mask = np.zeros_like(matrix_jaccard, dtype=bool)
+             # Fill above diagonal with True
+            mask[np.triu_indices_from(mask)] = True
+            sns.heatmap(matrix_jaccard, annot=True, mask=mask, cmap='Blues', vmin=vmin, vmax=vmax, ax=ax, cbar_ax=cax2, cbar_kws={"label": base_dataset}, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], annot_kws={"size": 5})
+        else:
+            mask = np.zeros_like(matrix_jaccard, dtype=bool)
+             # Fill bellow diagonal with True
+            mask[np.tril_indices_from(mask)] = True
+            sns.heatmap(matrix_jaccard, annot=True, mask=mask, cmap='OrRd', vmin=vmin, vmax=vmax, ax=ax, cbar_ax=cax1, cbar_kws={"label": base_dataset, "ticks":[]}, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], annot_kws={"size": 5})
+    sns.heatmap(np.ones((4, 4), dtype=int), mask=~np.eye(4, dtype=bool), cmap=ListedColormap(['white']), annot=False, annot_kws={"size": 5}, cbar=False, ax=ax, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"])
+    #plt.tight_layout()
+    filename = f"plots/{args.n_classes}-jaccard-index-heatmap-best-algorithm.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.close()
 
-    # # Print best algorithm per base dataset and dataset variant
-    # D = df_best_methods.groupby(["base_dataset", "dataset_variant"]).best_algorithm.value_counts()
-    # # Normalize the count
-    # D = D.groupby(level=[0,1],group_keys=False).apply(lambda x: x/float(x.sum()))
-    # D = D.reset_index(name="count")
-    # D["best_algorithm"] = D.best_algorithm.apply(lambda x: x.translate({ord("["): "", ord("]"): "", ord("'"): "", ord(" "): ""}))
-    # ba = D["best_algorithm"].unique()
-    # D["best_algorithm_legend"] = D["best_algorithm"].apply(lambda x: np.where(ba == x)[0][0])
-    # D.rename(columns={"best_algorithm": "Best Algorithm(s)",
-    #                   "base_dataset": "Base Dataset",
-    #                   "dataset_variant": "Dataset Variant",
-    #                   "best_algorithm_legend": "Best Algorithm Index",
-    #                   "count": "Fraction of wins"}, inplace=True)
-    # matplotlib.rcParams['pdf.fonttype'] = 42
-    # matplotlib.rcParams['ps.fonttype'] = 42
-    # matplotlib.style.use('ggplot')
-    # plt.rcParams['axes.facecolor'] = 'white'
-    # plt.rcParams['axes.edgecolor'] = 'black'
-    # plt.rc('font', size=6)
-
-    # g = sns.catplot(row="Base Dataset", y="Fraction of wins", x="Best Algorithm Index", 
-    #                 hue="Best Algorithm(s)", col="Dataset Variant", data=D, kind="bar", 
-    #                 errorbar=None, col_order=["Hard", "Intermediate", "Simple", "Naive"], 
-    #                 legend=False, height=1.1, aspect=1.1, sharex=True, dodge=False)
-    # g.set_titles("{row_name}\n{col_name}")
-    # g.set_xlabels("")
-    # g.set_xticklabels("")
-    # for ax in g.axes.flat:
-    #     ax.set_xticks([])
-    # plt.legend(bbox_to_anchor=(1.1, 1.8), loc=2, borderaxespad=0., fontsize=5)
-    # plt.tight_layout()
-    # filename = f"plots/{args.n_classes}-best-algorithms-per-base-dataset-and-dataset-variant.pdf"
-    # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
-    # plt.close()
-
-    # # Plot the count of the best algorithm in total
-    # matplotlib.rcParams['pdf.fonttype'] = 42
-    # matplotlib.rcParams['ps.fonttype'] = 42
-    # matplotlib.style.use('ggplot')
-    # plt.rcParams['axes.facecolor'] = 'white'
-    # plt.rc('font', size=6)
-
-    # D = df_best_methods.best_algorithm.value_counts()
-    # D = D.reset_index(name="count")
-    # D.rename(columns={"index": "best_algorithm"}, inplace=True)
-
-    # best_methods_count = {}
-    # # iterate over rows with iterrows()
-    # for index, row in D.iterrows():
-    #     alg_list = eval(row["best_algorithm"])
-    #     for alg in alg_list:
-    #         try:
-    #             best_methods_count[alg] += row["count"]
-    #         except KeyError:
-    #             best_methods_count[alg] = row["count"]
-
-    # D = pd.DataFrame.from_dict(best_methods_count, orient='index', columns=["count"])
-    # D = D.reset_index()
-    # D.rename(columns={"index": "Best Algorithm"}, inplace=True)
-    # D = D.sort_values(by="count", ascending=False)
-    # # Replace count with proportion
-    # D["count"] = D["count"] / D["count"].sum()
-    # D = D.sort_values(by="count", ascending=False)
-    # D.rename(columns={"count": "Fraction of wins"}, inplace=True)
-    # g = sns.catplot(y="Best Algorithm", x="Fraction of wins", data=D, kind="bar", errorbar=None, legend=False, height=2, aspect=1.5)
-    # plt.xlabel("Fraction of wins")
-    # plt.ylabel("Best Algorithm")
-    # plt.tight_layout()
-    # filename = f"plots/{args.n_classes}-best-algorithms-count.pdf"
-    # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
-    # plt.close()
-
-    # # Plot the count of the best algorithm per base dataset
-    # matplotlib.rcParams['pdf.fonttype'] = 42
-    # matplotlib.rcParams['ps.fonttype'] = 42
-    # matplotlib.style.use('ggplot')
-    # plt.rcParams['axes.facecolor'] = 'white'
-    # plt.rc('font', size=6)
-
-    # D = df_best_methods.groupby(["base_dataset"]).best_algorithm.value_counts()
-    # D = D.reset_index(name="count")
-    # D.rename(columns={"index": "best_algorithm"}, inplace=True)
-
-    # best_methods_count = {}
-    # for base_dataset in D.base_dataset.unique():
-    #     best_methods_count[base_dataset] = {}
+    # Plot the effect size: how much the best algorithms are the best
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rc('font', size=6)
     
-    # # iterate over rows with iterrows()
-    # for index, row in D.iterrows():
-    #     alg_list = eval(row["best_algorithm"])
-    #     for alg in alg_list:
-    #         try:
-    #             best_methods_count[row["base_dataset"]][alg] += row["count"]
-    #         except KeyError:
-    #             best_methods_count[row["base_dataset"]][alg] = row["count"]
-
-    # D = pd.DataFrame.from_dict(best_methods_count, orient='index')
-    # D = D.reset_index()
-    # D.rename(columns={"index": "Base Dataset"}, inplace=True)
-    # D = D.sort_values(by="Base Dataset", ascending=False)
-    # D = D.melt(id_vars=["Base Dataset"], var_name="Best Algorithm", value_name="Count")
-    # D.dropna(inplace=True) # Removing algorithms that are not in the base dataset
-    # # Replace count with proportion
-    # D["Count"] = D["Count"] / D.groupby(["Base Dataset"])["Count"].transform('sum')
-    # D = D.sort_values(by=["Base Dataset", "Count"], ascending=False)
-    # D.rename(columns={"Count": "Fraction of wins"}, inplace=True)
-
-    # g = sns.catplot(y="Base Dataset", x="Fraction of wins", hue="Best Algorithm", data=D, kind="bar", errorbar=None, legend=False, height=2, aspect=1.5, palette="husl", hue_order=hue_order)
-    # plt.legend(loc="best", borderaxespad=0., fontsize=5)
-    # # xticks set
-    # g.set(xticks=[0, 0.2, 0.4, 0.6])
-    # g.set_xticklabels(["0", "0.2", "0.4", "0.6"])
-    # plt.xlabel("Fraction of wins")
-    # plt.ylabel("Base Dataset")
-    # plt.tight_layout()
-    # filename = f"plots/{args.n_classes}-best-algorithms-count-per-base-dataset.pdf"
-    # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
-    # plt.close()
-
-    # # Plot the count of the best algorithm per variant
-    # matplotlib.rcParams['pdf.fonttype'] = 42
-    # matplotlib.rcParams['ps.fonttype'] = 42
-    # matplotlib.style.use('ggplot')
-    # plt.rcParams['axes.facecolor'] = 'white'
-    # plt.rc('font', size=6)
-
-    # D = df_best_methods.groupby(["dataset_variant"]).best_algorithm.value_counts()
-    # D = D.reset_index(name="count")
-    # D.rename(columns={"index": "best_algorithm"}, inplace=True)
-
-    # best_methods_count = {}
-    # for dataset_variant in D.dataset_variant.unique():
-    #     best_methods_count[dataset_variant] = {}
-    
-    # # iterate over rows with iterrows()
-    # for index, row in D.iterrows():
-    #     alg_list = eval(row["best_algorithm"])
-    #     for alg in alg_list:
-    #         try:
-    #             best_methods_count[row["dataset_variant"]][alg] += row["count"]
-    #         except KeyError:
-    #             best_methods_count[row["dataset_variant"]][alg] = row["count"]
-
-    # D = pd.DataFrame.from_dict(best_methods_count, orient='index')
-    # D = D.reset_index()
-    # D.rename(columns={"index": "Dataset Variant"}, inplace=True)
-    # D = D.sort_values(by="Dataset Variant", ascending=False)
-    # D = D.melt(id_vars=["Dataset Variant"], var_name="Best Algorithm", value_name="Count")
-    # D.dropna(inplace=True) # Removing algorithms that are not in the base dataset
-    # # Replace count with proportion
-    # D["Count"] = D["Count"] / D.groupby(["Dataset Variant"])["Count"].transform('sum')
-    # D = D.sort_values(by=["Dataset Variant", "Count"], ascending=False)
-    # D.rename(columns={"Count": "Fraction of wins"}, inplace=True)
-
-    # g = sns.catplot(y="Dataset Variant", x="Fraction of wins", hue="Best Algorithm", data=D, kind="bar", errorbar=None, legend=False, height=2, aspect=1.5, palette="husl", hue_order=hue_order)
-    # plt.legend(loc="best", borderaxespad=0., fontsize=5)
-    # # xticks set
-    # g.set(xticks=[0, 0.2, 0.4, 0.6])
-    # g.set_xticklabels(["0", "0.2", "0.4", "0.6"])
-    # plt.xlabel("Fraction of wins")
-    # plt.ylabel("Dataset Variant")
-    # plt.tight_layout()
-    # filename = f"plots/{args.n_classes}-best-algorithms-count-per-dataset-variant.pdf"
-    # plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
-    # plt.close()
+    fig, ax = plt.subplots(2, 2, figsize=(3.5, 2), sharey=True, sharex=True)
+    for idx, llp_variant in enumerate(["Naive", "Simple", "Intermediate", "Hard"]):
+        sns.histplot(diff_best_model_bottom[llp_variant], kde=True, ax=ax[idx // 2, idx % 2], kde_kws={'bw_adjust': 0.5}, stat="count")
+        ax[idx // 2, idx % 2].set_xlabel("Difference in " + r"$F_1$" + "-score")
+        ax[idx // 2, idx % 2].set_ylabel("Count")
+        ax[idx // 2, idx % 2].set_title(llp_variant)
+        ax[idx // 2, idx % 2].set_xticks([0, 0.05, 0.1, 0.15, 0.2, 0.25])
+        ax[idx // 2, idx % 2].set_xticklabels(["0.00", "0.05", "0.10", "0.15", "0.20", "0.25"])
+    plt.tight_layout()
+    filename = f"plots/{args.n_classes}-effect-sizes-dist.pdf"
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
+    plt.close()
 
     # Plot the count of the best algorithm per base dataset and dataset variant
     matplotlib.rcParams['pdf.fonttype'] = 42
     matplotlib.rcParams['ps.fonttype'] = 42
     matplotlib.style.use('ggplot')
-    # plt.rcParams['axes.facecolor'] = 'white'
     plt.rc('font', size=6)
 
 

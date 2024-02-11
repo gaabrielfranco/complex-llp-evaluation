@@ -47,15 +47,35 @@ python3 adult_preprocessing.py
 
 The base dataset is saved as ```adult.parquet```
 
-### CIFAR-10 download and pre-processing:
+### CIFAR-10 (Greyscale) download and pre-processing:
 
 ```sh
 wget https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
 tar -xvf cifar-10-python.tar.gz
-python3 cifar-10_preprocessing.py
+python3 cifar-10-grey_preprocessing.py
 ```
 
 The base dataset is saved as ```cifar-10-grey.parquet```
+
+### CIFAR-10 pre-processing:
+
+With the CIFAR-10 already downloaded in the previous step, it is just run the following code:
+
+```sh
+python3 cifar-10-preprocessing.py
+```
+
+The base dataset is saved as ```cifar-10.parquet```
+
+### SVHN download and pre-processing:
+
+```sh
+wget http://ufldl.stanford.edu/housenumbers/train_32x32.mat
+wget http://ufldl.stanford.edu/housenumbers/test_32x32.mat
+python3 svhn_preprocessing.py
+```
+
+The base dataset is saved as ```svhn.parquet```
 
 ## Generate the datasets
 
@@ -65,7 +85,7 @@ In the ```llp-variants-datasets-benchmarks``` folder, run the following script:
 ./run_gen_datasets.sh
 ```
 
-All the datasets are saved in the ```datasets-ci``` folder. The base datasets are also processed and saved in this folder, as ```adult.parquet``` and ```cifar-10-grey-animal-vehicle.parquet```.
+All the datasets are saved in the ```datasets-ci``` folder. The base datasets are also processed and saved in this folder.
 
 ## Run the CI tests
 
@@ -85,12 +105,7 @@ python3 run_experiments.py -d {dataset_name} -m {model} -l {loss} -n {n_splits} 
 
 As an example, we have:
 ```sh
-python3 run_experiments -d adult-hard-large-equal-close-global-cluster-kmeans-5 -m lmm -l abs -n 3 -v 0.5 -s split-bag-bootstrap -e 0
-```
-
-For $k$-fold based methods, the *validation_size_percentage* is not used
-```sh
-python3 kdd_experiment.py -d adult-hard-large-equal-close-global-cluster-kmeans-5 -m lmm -l abs -n 3 -s split-bag-k-fold -e 0
+python3 run_experiments -d adult-hard-large-equal-close-global-cluster-kmeans-5 -m lmm -l abs -n 3 -v 0.5 -s split-bag-shuffle -e 0
 ```
 
 ## Run all the paper experiments
@@ -99,7 +114,7 @@ python3 kdd_experiment.py -d adult-hard-large-equal-close-global-cluster-kmeans-
 ./run_all_experiments.sh
 ```
 
-Each execution produces one ```parquet``` file. After running all the experiments, they can be combined into one single file (```datasets-benchmark-experiment-results.parquet```) as following:
+Each execution produces one ```parquet``` file. After running all the experiments, they can be combined into one single file (```llp-benchmark-experiment-results.parquet```) as following:
 
 ```sh
 python3 aggregate_results.py
@@ -108,16 +123,20 @@ python3 aggregate_results.py
 ## Produce all the plots in the paper
 
 ```sh
-python3 plot_results.py -p best-methods
+python3 plot_results.py -p best-methods -n binary
+```
+
+```sh
+python3 plot_results.py -p best-methods -n multiclass
 ```
 
 The plots are saved in the ```plots``` folder.
 
 ## Produce the results and extra information about the datasets in LaTeX table format
 ```sh
-python3 plot_results.py -p table-all-results
-python3 plot_results.py -p datasets-info
-python3 plot_results.py -p table-ci-tests
+python3 plot_results.py -p table-all-results -n all
+python3 plot_results.py -p datasets-info -n all
+python3 plot_results.py -p table-ci-tests -n all
 ```
 
 The tables are saved in the ```tables``` folder.
