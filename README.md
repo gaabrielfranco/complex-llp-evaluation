@@ -1,4 +1,4 @@
-# Evaluating LLP Methods: Challenges and Approaches
+# The Complex Landscape of LLP Evaluation
 
 Repository for reproducing the results of the paper "Evaluating LLP Methods: Challenges and Approaches"
 
