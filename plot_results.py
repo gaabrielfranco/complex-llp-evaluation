@@ -264,19 +264,28 @@ elif args.plot_type == "best-methods":
     plt.close()
 
     # Heatmap of counts of best f1-score per exec
+    matplotlib.rcParams['pdf.fonttype'] = 42
+    matplotlib.rcParams['ps.fonttype'] = 42
+    matplotlib.style.use('ggplot')
+    plt.rcParams['axes.facecolor'] = 'white'
+    plt.rc('font', size=6)
+
     df_count = pd.DataFrame(columns=["dataset"] + hue_order)
-    for idx, dataset in enumerate(sorted(final_results.dataset.unique())):
+    # For binary, there is no usage of pretty_dataset_name
+    if args.n_classes == "binary":
+        final_results["pretty_dataset_name"] = final_results["dataset"]
+    else:
+        final_results["pretty_dataset_name"] = final_results["base_dataset"] + " (" + final_results["dataset_variant"] + ", " + final_results["dataset"].apply(lambda x: x.split("-")[-1]) + " bags)"
+    for idx, dataset in enumerate(sorted(final_results.pretty_dataset_name.unique())):
         count_models = {}
         for model in final_results.model.unique():
             count_models[model] = 0.0
 
-        best_method = deepcopy(final_results[(final_results.dataset == dataset)])
-
-        best_method["pretty_dataset_name"] = best_method["base_dataset"] + " (" + best_method["dataset_variant"] + ") " + best_method["dataset"].apply(lambda x: x.split("-")[-1]) + " bags"
+        best_method = deepcopy(final_results[(final_results.pretty_dataset_name == dataset)])
 
         if len(best_method) != 80 and len(best_method) != 40:
             raise ValueError("Number of experiments is not 80/40")
-        
+                
         for exec in sorted(best_method.exec.unique()):
             best_method_exec = deepcopy(best_method[best_method.exec == exec])
             if len(best_method_exec) != 8 and len(best_method_exec) != 4:
@@ -301,7 +310,7 @@ elif args.plot_type == "best-methods":
             }, index=[0])], ignore_index=True)
         elif args.n_classes == "multiclass":
             df_count = pd.concat([df_count, pd.DataFrame({
-                "dataset": best_method.pretty_dataset_name.unique()[0],
+                "dataset": dataset,
                 "DLLP": count_models["DLLP"],
                 "LLP-VAT": count_models["LLP-VAT"],
                 "MixBag": count_models["MixBag"],
@@ -310,28 +319,31 @@ elif args.plot_type == "best-methods":
 
 
     # Plot heatmap
-    g = sns.heatmap(df_count.set_index("dataset"), annot=False, cmap="YlGnBu")
+    if args.n_classes == "binary":
+        fig, ax = plt.subplots(figsize=(4.5, 3))
+    else:
+        fig, ax = plt.subplots(figsize=(2.75, 3))
+    g = sns.heatmap(df_count.set_index("dataset"), annot=False, cmap="YlGnBu", ax=ax)
     # Get axis
     if args.n_classes == "binary":
-        ax = g.axes
         ax.set_yticklabels([])
         ax.set_yticks([])
         ax.set_ylabel("")
         ax.hlines([15, 30, 37, 52, 67, 74, 81], *ax.get_xlim(), color="red")
         # Add text to the heatmap (left side) to substitute the y-axis
-        ax.text(-0.5, 7.5, "Adult\n(Hard)", ha="center", va="center", fontsize=8)
-        ax.text(-0.5, 22.5, "Adult\n(Interm.)", ha="center", va="center", fontsize=8)
-        ax.text(-0.5, 33.5, "Adult\n(Naive)", ha="center", va="center", fontsize=8)
-        ax.text(-0.5, 44.5, "Adult\n(Simple)", ha="center", va="center", fontsize=8)
+        ax.text(-0.5, 7.5, "Adult\n(Hard)", ha="center", va="center", fontsize=6)
+        ax.text(-0.5, 22.5, "Adult\n(Interm.)", ha="center", va="center", fontsize=6)
+        ax.text(-0.5, 33.5, "Adult\n(Naive)", ha="center", va="center", fontsize=6)
+        ax.text(-0.5, 44.5, "Adult\n(Simple)", ha="center", va="center", fontsize=6)
         
-        ax.text(-0.5, 59.5, "CIFAR-10\n(Hard)", ha="center", va="center", fontsize=8)
-        ax.text(-0.5, 70.5, "CIFAR-10\n(Interm.)", ha="center", va="center", fontsize=8)
-        ax.text(-0.5, 78.5, "CIFAR-10\n(Naive)", ha="center", va="center", fontsize=8)
-        ax.text(-0.5, 88, "CIFAR-10\n(Simple)", ha="center", va="center", fontsize=8)
+        ax.text(-0.5, 59.5, "CIFAR-10\n(Hard)", ha="center", va="center", fontsize=6)
+        ax.text(-0.5, 70.5, "CIFAR-10\n(Interm.)", ha="center", va="center", fontsize=6)
+        ax.text(-0.5, 78.5, "CIFAR-10\n(Naive)", ha="center", va="center", fontsize=6)
+        ax.text(-0.5, 88, "CIFAR-10\n(Simple)", ha="center", va="center", fontsize=6)
     else:
-        ax = g.axes
+        ax.hlines([3, 6, 9, 12, 15, 18, 21], *ax.get_xlim(), color="red")
         ax.set_ylabel("")
-        ax.hlines([3, 6, 9, 12, 15, 18, 21], *ax.get_xlim())
+    
     
     plt.savefig(f"plots/heatmap-best-methods-{args.n_classes}.pdf", bbox_inches='tight', pad_inches=0.01, dpi=800)
     plt.close()
