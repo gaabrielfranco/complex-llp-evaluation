@@ -283,8 +283,8 @@ elif args.plot_type == "best-methods":
 
         best_method = deepcopy(final_results[(final_results.pretty_dataset_name == dataset)])
 
-        if len(best_method) != 80 and len(best_method) != 40:
-            raise ValueError("Number of experiments is not 80/40")
+        if len(best_method) != 240 and len(best_method) != 120:
+            raise ValueError("Number of experiments is not 240/120")
                 
         for exec in sorted(best_method.exec.unique()):
             best_method_exec = deepcopy(best_method[best_method.exec == exec])
