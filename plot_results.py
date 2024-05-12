@@ -229,8 +229,8 @@ elif args.plot_type == "best-methods":
     plt.rc('font', size=6)
     g = sns.catplot(y="base_dataset", x="f1_test", hue="model", col="dataset_variant", 
                     data=final_results, kind="bar", col_order=["Hard", "Intermediate", "Simple", "Naive"], 
-                    legend=True, height=1.5, aspect=1, sharex=True, errorbar="ci", capsize=0.05, col_wrap=2, 
-                    errwidth=1, hue_order=hue_order, palette=palette, legend_out=True)
+                    legend=True, height=1, aspect=1.25, sharex=True, errorbar="ci", capsize=0.05, col_wrap=2, 
+                    errwidth=0.9, hue_order=hue_order, palette=palette, legend_out=True)
     g.set_titles("{col_name}")
     # Draw a line with the f-score of the supervised neural network
     for ax in g.axes.flat:
@@ -244,6 +244,7 @@ elif args.plot_type == "best-methods":
     handles, labels = ax.get_legend_handles_labels()
     # Adding the new handles and labels to the legend
     g._legend.remove()
+    # Legend outside the plot
     g.fig.legend(handles, labels, loc='center left', bbox_to_anchor=(0.8, 0.5), fontsize=5, ncols=1)
     #g.fig.legend(handles, labels, loc='center left', bbox_to_anchor=(0.7, 0.5), fontsize=5, ncol=1)
 
@@ -252,7 +253,7 @@ elif args.plot_type == "best-methods":
         ax.set_xticks(np.arange(0, 1.1, 0.2))
         ax.set_ylabel("")
         if idx == 3:
-            ax.set_xticklabels(["0.0", "0.2", "0.4", "0.6", "0.8", "1.0"])
+            ax.set_xticklabels(["0", ".2", ".4", ".6", ".8", "1"])
             ax.set_xlabel(r"$F_1$-score")
         else:
             ax.set_xticklabels([])
@@ -529,7 +530,7 @@ elif args.plot_type == "best-methods":
 
         matrices_jaccard[base_dataset] = matrix_jaccard
     
-    fig = plt.figure(figsize=(3, 2))
+    fig = plt.figure(figsize=(2, 1.5))
     gs0 = matplotlib.gridspec.GridSpec(1,2, width_ratios=[20,3], hspace=0.0)
     gs00 = matplotlib.gridspec.GridSpecFromSubplotSpec(1,2, subplot_spec=gs0[1], hspace=0, wspace=6)
 
@@ -621,8 +622,8 @@ elif args.plot_type == "best-methods":
 
     # Plot (Base Dataset, Dataset Variant) combinations
     g = sns.catplot(y="Base Dataset", x="Fraction", hue="Best Algorithm", col="Dataset Variant", 
-                    data=D, kind="bar", errorbar=None, legend=False, height=1.5, aspect=1.25, 
-                    palette=palette, col_wrap=1, hue_order=hue_order)
+                    data=D, kind="bar", errorbar=None, legend=False, height=1.5, aspect=0.9, 
+                    palette=palette, col_wrap=4, hue_order=hue_order)
     # Remove ylabels
     for ax in g.axes.flat:
         ax.set_ylabel("")
