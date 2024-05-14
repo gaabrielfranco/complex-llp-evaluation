@@ -622,14 +622,18 @@ elif args.plot_type == "best-methods":
 
     # Plot (Base Dataset, Dataset Variant) combinations
     g = sns.catplot(y="Base Dataset", x="Fraction", hue="Best Algorithm", col="Dataset Variant", 
-                    data=D, kind="bar", errorbar=None, legend=False, height=1.5, aspect=0.9, 
-                    palette=palette, col_wrap=4, hue_order=hue_order)
+                    data=D, kind="bar", errorbar=None, legend=True, height=1, aspect=1.25, #height=1.5, aspect=0.9, 
+                    palette=palette, col_wrap=2, hue_order=hue_order, legend_out=True)
     # Remove ylabels
     for ax in g.axes.flat:
         ax.set_ylabel("")
+        ax.set_xticks([0, 0.5, 1])
+        ax.set_xticklabels(["0", "0.5", "1"])
+
+    g.legend.set_title("Algorithm")
 
     g.set_titles("{col_name}")
-    plt.legend(loc="center right", borderaxespad=0., fontsize=5)
+    #plt.legend(loc="center right", borderaxespad=0., fontsize=5)
     plt.xlabel("Fraction")
     filename = f"plots/{args.n_classes}-best-algorithms-count-per-base-dataset-and-dataset-variant.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
