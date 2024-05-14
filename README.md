@@ -1,6 +1,6 @@
 # The Complex Landscape of LLP Evaluation
 
-Repository for reproducing the results of the paper "Evaluating LLP Methods: Challenges and Approaches"
+Repository for reproducing the results of the paper "The Complex Landscape of LLP Evaluation"
 
 ## Requirements
 - Python 3.8 or higher (developed on Python 3.8)
@@ -79,7 +79,7 @@ The base dataset is saved as ```svhn.parquet```
 
 ## Generate the datasets
 
-In the ```llp-variants-datasets-benchmarks``` folder, run the following script:
+In the ```complex-llp-evaluation``` folder, run the following script:
 
 ```sh
 ./run_gen_datasets.sh
@@ -89,7 +89,7 @@ All the datasets are saved in the ```datasets-ci``` folder. The base datasets ar
 
 ## Run the CI tests
 
-In the ```llp-variants-datasets-benchmarks``` folder, run the following script:
+In the ```complex-llp-evaluation``` folder, run the following script:
 
 ```sh
 ./run_ci_tests.sh
