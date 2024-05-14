@@ -639,7 +639,7 @@ elif args.plot_type == "table-all-results":
     get_performance = lambda x: f"{np.round(x.f1_test.mean(), 4)} ({np.round(1.96 * np.std(x.f1_test.values)/np.sqrt(len(x.f1_test.values)), 4)})"
 
     # Dataframe with all results
-    df_results = pd.DataFrame(columns=["Dataset", "Algorithm", "Average (std) $F_1$-score on test set"])
+    df_results = pd.DataFrame(columns=["Dataset", "Algorithm", "Average (95\% CI) $F_1$-score on test set"])
 
     for dataset in final_results.dataset.unique():
         final_result_dataset = deepcopy(final_results[final_results.dataset == dataset])
@@ -648,7 +648,7 @@ elif args.plot_type == "table-all-results":
             df_results = pd.concat([df_results, pd.DataFrame({
                 "Dataset": dataset,
                 "Algorithm": model,
-                "Average (std) $F_1$-score on test set": get_performance(data[data.split_method == "SB\nSH\n0.5"]),
+                "Average (95\% CI) $F_1$-score on test set": get_performance(data[data.split_method == "SB\nSH\n0.5"]),
             }, index=[0])], ignore_index=True)
 
     with pd.option_context("max_colwidth", 10000):
