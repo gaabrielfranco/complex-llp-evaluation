@@ -530,7 +530,7 @@ elif args.plot_type == "best-methods":
 
         matrices_jaccard[base_dataset] = matrix_jaccard
     
-    fig = plt.figure(figsize=(2, 1.5))
+    fig = plt.figure(figsize=(2, 1.25))
     gs0 = matplotlib.gridspec.GridSpec(1,2, width_ratios=[20,3], hspace=0.0)
     gs00 = matplotlib.gridspec.GridSpecFromSubplotSpec(1,2, subplot_spec=gs0[1], hspace=0, wspace=6)
 
@@ -546,13 +546,13 @@ elif args.plot_type == "best-methods":
             mask = np.zeros_like(matrix_jaccard, dtype=bool)
              # Fill above diagonal with True
             mask[np.triu_indices_from(mask)] = True
-            sns.heatmap(matrix_jaccard, annot=True, mask=mask, cmap='Blues', vmin=vmin, vmax=vmax, ax=ax, cbar_ax=cax2, cbar_kws={"label": base_dataset}, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], annot_kws={"size": 5})
+            sns.heatmap(matrix_jaccard, annot=True, mask=mask, cmap='Blues', vmin=vmin, vmax=vmax, ax=ax, cbar_ax=cax2, cbar_kws={"label": base_dataset}, xticklabels=["Naive", "Simple", "Interm.", "Hard"], yticklabels=["Naive", "Simple", "Interm.", "Hard"], annot_kws={"size": 5})
         else:
             mask = np.zeros_like(matrix_jaccard, dtype=bool)
              # Fill bellow diagonal with True
             mask[np.tril_indices_from(mask)] = True
-            sns.heatmap(matrix_jaccard, annot=True, mask=mask, cmap='OrRd', vmin=vmin, vmax=vmax, ax=ax, cbar_ax=cax1, cbar_kws={"label": base_dataset, "ticks":[]}, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"], annot_kws={"size": 5})
-    sns.heatmap(np.ones((4, 4), dtype=int), mask=~np.eye(4, dtype=bool), cmap=ListedColormap(['white']), annot=False, annot_kws={"size": 5}, cbar=False, ax=ax, xticklabels=["Naive", "Simple", "Intermediate", "Hard"], yticklabels=["Naive", "Simple", "Intermediate", "Hard"])
+            sns.heatmap(matrix_jaccard, annot=True, mask=mask, cmap='OrRd', vmin=vmin, vmax=vmax, ax=ax, cbar_ax=cax1, cbar_kws={"label": base_dataset, "ticks":[]}, xticklabels=["Naive", "Simple", "Interm.", "Hard"], yticklabels=["Naive", "Simple", "Interm.", "Hard"], annot_kws={"size": 5})
+    sns.heatmap(np.ones((4, 4), dtype=int), mask=~np.eye(4, dtype=bool), cmap=ListedColormap(['white']), annot=False, annot_kws={"size": 5}, cbar=False, ax=ax, xticklabels=["Naive", "Simple", "Interm.", "Hard"], yticklabels=["Naive", "Simple", "Interm.", "Hard"])
     #plt.tight_layout()
     filename = f"plots/{args.n_classes}-jaccard-index-heatmap-best-algorithm.pdf"
     plt.savefig(filename, bbox_inches='tight', pad_inches=0.01, dpi=800)
